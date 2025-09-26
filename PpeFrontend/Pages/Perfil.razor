@@ -1,0 +1,72 @@
+@page "/perfil"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http.Headers
+@using PpeFrontend.Services
+
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+<h3>Perfil</h3>
+
+@if (perfil == null)
+{
+  <p>Carregando...</p>
+}
+else
+{
+  <p><strong>Nome:</strong> @perfil.Nome</p>
+  <p><strong>Email:</strong> @perfil.Email</p>
+  <p><strong>Role:</strong> @perfil.Role</p>
+  <p><strong>Refresh expira em:</strong> @perfil.RefreshExpiraEm</p>
+}
+
+<button class="btn btn-danger" @onclick="Logout">Sair</button>
+
+@code {
+  PerfilResponse? perfil;
+
+  protected override async Task OnInitializedAsync()
+  {
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+    if (!string.IsNullOrEmpty(token))
+    {
+      Http.DefaultRequestHeaders.Authorization =
+      new AuthenticationHeaderValue("Bearer", token);
+
+      try
+      {
+        perfil = await Http.GetFromJsonAsync<PerfilResponse>("api/Auth/perfil");
+      }
+      catch (HttpRequestException ex)
+      {
+        Console.WriteLine($"Erro ao carregar perfil: {ex.Message}");
+        // Aqui você pode redirecionar para login ou mostrar uma mensagem
+      }
+    }
+  }
+
+  async Task Logout()
+  {
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+    Http.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue("Bearer", token);
+
+    await Http.PostAsync("api/auth/logout", null);
+    await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+
+    ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserLogout();
+    Nav.NavigateTo("/login");
+  }
+
+  public class PerfilResponse
+  {
+    public string Nome { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string RefreshExpiraEm { get; set; } = string.Empty;
+  }
+}

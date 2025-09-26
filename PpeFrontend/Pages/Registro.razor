@@ -1,0 +1,84 @@
+@page "/registro"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Registro de Usuário</h3>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+  <p>@mensagem</p>
+}
+
+<EditForm Model="@usuario" OnValidSubmit="Registrar">
+  <DataAnnotationsValidator />
+  <ValidationSummary />
+
+  <div>
+    <label>Nome:</label>
+    <InputText @bind-Value="usuario.Nome" class="form-control" />
+    <ValidationMessage For="@(() => usuario.Nome)" />
+  </div>
+
+  <div>
+    <label>Email:</label>
+    <InputText @bind-Value="usuario.Email" class="form-control" />
+    <ValidationMessage For="@(() => usuario.Email)" />
+  </div>
+
+  <div>
+    <label>Senha:</label>
+    <InputText @bind-Value="usuario.Senha" type="password" class="form-control" />
+    <ValidationMessage For="@(() => usuario.Senha)" />
+  </div>
+
+  <div>
+    <label>Role:</label>
+    <InputSelect @bind-Value="usuario.Role" class="form-control">
+      <option value="">Selecione</option>
+      <option value="admin">admin</option>
+      <option value="user">usuario</option>
+    </InputSelect>
+    <ValidationMessage For="@(() => usuario.Role)" />
+  </div>
+
+  <button type="submit" class="btn btn-primary mt-3">Registrar</button>
+</EditForm>
+
+@code {
+  UsuarioRegistro usuario = new();
+  string mensagem = "";
+
+  async Task Registrar()
+  {
+    var response = await Http.PostAsJsonAsync("api/Auth/registrar", usuario);
+
+    if (response.IsSuccessStatusCode)
+    {
+      mensagem = "✅ Usuário registrado com sucesso!";
+      await Task.Delay(1500);
+      Nav.NavigateTo("/login");
+    }
+    else
+    {
+      mensagem = "❌ Erro ao registrar usuário.";
+    }
+  }
+
+  public class UsuarioRegistro
+  {
+    [Required(ErrorMessage = "Nome é obrigatório")]
+    public string Nome { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Email é obrigatório")]
+    [EmailAddress(ErrorMessage = "Email inválido")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Senha é obrigatória")]
+    [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres")]
+    public string Senha { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Role é obrigatória")]
+    public string Role { get; set; } = string.Empty;
+  }
+}

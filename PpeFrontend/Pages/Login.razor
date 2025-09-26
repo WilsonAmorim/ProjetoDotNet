@@ -1,0 +1,37 @@
+@page "/login"
+@using PpeFrontend.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+@inject HttpClient Http
+
+<h3>Login</h3>
+
+<input @bind="email" placeholder="Email" />
+<input @bind="senha" placeholder="Senha" type="password" />
+<button @onclick="FazerLogin">Entrar</button>
+
+@code {
+  string email = "", senha = "";
+
+  async Task FazerLogin()
+  {
+    var payload = new { email, senha };
+    var response = await Http.PostAsJsonAsync("http://localhost:5271/api/Auth/login", payload);
+    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+    if (result?.Token != null)
+    {
+      await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Token);
+      ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
+      Nav.NavigateTo("/perfil");
+    }
+  }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; } = string.Empty;
+    }
+
+}

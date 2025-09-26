@@ -1,0 +1,6 @@
+@PpeBackendAPI_HostAddress = http://localhost:5252
+
+GET {{PpeBackendAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
