@@ -3,7 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PpeBackendAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Features;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var chave = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Chave JWT não configurada.");
@@ -11,6 +12,12 @@ var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
 
 builder.Services.AddDbContext<MeuDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10_000_000; // 10MB
+});
+
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -31,6 +38,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = key // ✅ usa a mesma chave carregada acima
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("usuario", policy =>
+        policy.RequireRole("usuario"));
+});
 
 builder.Services.AddCors(options =>
 {

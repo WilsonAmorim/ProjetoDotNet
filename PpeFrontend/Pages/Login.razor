@@ -23,15 +23,17 @@
 
     if (result?.Token != null)
     {
-      await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Token);
+      await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
       ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
-      Nav.NavigateTo("/perfil");
+      Nav.NavigateTo("/minhas-tarefas", forceLoad: true);
+
     }
   }
 
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
-    }
+  public class LoginResponse
+  {
+    public string Token { get; set; } = string.Empty;
+    public string refreshToken { get; set; } = "";
+  }
 
 }

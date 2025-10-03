@@ -6,6 +6,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="">
@@ -18,22 +19,32 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-            <span class="bi bi-house-door-fill-nav-menu"></span> Home
-          </NavLink>
-        </li>
-        <li class="nav-item">
-          <NavLink class="nav-link" href="counter">
-            <span class="bi bi-plus-square-fill-nav-menu"></span> Counter
-          </NavLink>
-        </li>
-        <li class="nav-item">
-          <NavLink class="nav-link" href="weather">
-            <span class="bi bi-list-nested-nav-menu"></span> Weather
-          </NavLink>
-        </li>
+        <AuthorizeView Roles="usuario">
+          <li class="nav-item">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+              <span class="bi bi-house-door-fill-nav-menu"></span> Tela Principal
+            </NavLink>
+          </li>
+          <li class="nav-item">
+            <NavLink class="nav-link" href="counter">
+              <span class="bi bi-plus-square-fill-nav-menu"></span> Conferências
+            </NavLink>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <span class="bi bi-list-nested-nav-menu"></span> Tarefas
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <NavLink class="dropdown-item" href="/minhas-tarefas">Minhas Tarefas</NavLink>
+              </li>
+              <li>
+                <NavLink class="dropdown-item" href="/criar-tarefa">Criar Tarefa</NavLink>
+              </li>
+            </ul>
+          </li>
 
+        </AuthorizeView>
         <AuthorizeView Roles="admin">
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -41,10 +52,13 @@
             </a>
             <ul class="dropdown-menu">
               <li>
-                <NavLink class="dropdown-item" href="usuarios">Usuários</NavLink>
+                <NavLink class="dropdown-item" href="usuarios">Configuração</NavLink>
               </li>
               <li>
-                <NavLink class="dropdown-item" href="relatorios">Relatórios</NavLink>
+                <NavLink class="dropdown-item" href="relatorios">Atualizar Base</NavLink>
+              </li>
+              <li>
+                <NavLink class="dropdown-item" href="relatorios">Daskboard</NavLink>
               </li>
               <li class="nav-item">
                 <NavLink class="nav-link btn btn-outline-light" href="login">Entrar</NavLink>
@@ -61,7 +75,9 @@
           </li>
         </AuthorizeView>
       </ul>
+    </div>
 
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <AuthorizeView>
           <Authorizing>
@@ -78,8 +94,8 @@
           <Authorized>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" href="#">
-                @* @(string.IsNullOrEmpty(context.User.Identity?.Name) ? "Usuário" : context.User.Identity.Name) *@
-                <span>@(string.IsNullOrEmpty(context.User.Identity?.Name) ? "Usuário" :
+
+                <span>@(string.IsNullOrEmpty(context.User.Identity?.Name) ? "usuario" :
                                     context.User.Identity.Name)</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
@@ -103,6 +119,7 @@
         </AuthorizeView>
       </ul>
     </div>
+
   </div>
 </nav>
 
@@ -112,5 +129,15 @@
     await JS!.InvokeVoidAsync("localStorage.removeItem", "authToken");
     ((JwtAuthenticationStateProvider)AuthProvider!).NotifyUserLogout();
     Nav!.NavigateTo("login", forceLoad: true);
+  }
+
+  private void MinhasTarefas()
+  {
+    Nav!.NavigateTo("/minhas-tarefas", forceLoad: true);
+  }
+
+  private void CriarTarefas()
+  {
+    Nav.NavigateTo("/criar-tarefa", forceLoad: true);
   }
 }

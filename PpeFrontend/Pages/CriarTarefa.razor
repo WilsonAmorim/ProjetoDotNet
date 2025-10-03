@@ -1,0 +1,135 @@
+@page "/criar-tarefa"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@using System.Net.Http
+@using System.Net.Http.Headers
+
+
+<h3>Criar Tarefa</h3>
+
+<EditForm Model="@novaTarefa" OnValidSubmit="EnviarTarefa">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Descrição</label>
+        <InputText class="form-control" @bind-Value="novaTarefa.descricao" />
+    </div>
+
+    <div class="mb-3">
+        <label>Usuário Destino</label>
+        <InputSelect class="form-control" @bind-Value="novaTarefa.usuarioDestino">
+            <option value="">Selecione</option>
+            @foreach (var usuario in usuarios)
+            {
+                <option value="@usuario.Id">@usuario.Nome </option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label>Observação</label>
+        <InputTextArea class="form-control" @bind-Value="novaTarefa.observacao" />
+    </div>
+    <div class="mb-3">
+        <label class="form-check">
+            <input type="checkbox" class="form-check-input" @bind="ehPrioritaria" />
+            <span class="form-check-label">É prioritária?</span>
+        </label>
+
+    </div>
+
+    <button type="submit" class="btn btn-primary">Criar Tarefa</button>
+</EditForm>
+
+@if (mensagem != null)
+{
+    <div class="alert alert-info mt-3">@mensagem</div>
+}
+
+@code {
+    private CriarTarefaDTO novaTarefa = new();
+    private List<UsuarioDTO> usuarios = new();
+    private string? mensagem;
+    private bool ehPrioritaria = false;
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        Console.WriteLine("Token atual: " + token);
+
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        try
+        {
+            var response = await client.GetAsync("api/Auth/usuarios-ativos");
+
+            if (response.IsSuccessStatusCode)
+            {
+                usuarios = await response.Content.ReadFromJsonAsync<List<UsuarioDTO>>() ?? new();
+            }
+            else
+            {
+                Console.WriteLine($"Erro ao carregar usuários: {response.StatusCode}");
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    Nav.NavigateTo("/login");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro inesperado: " + ex.Message);
+        }
+
+    }
+
+
+
+    private async Task EnviarTarefa()
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        // Define o status com base no checkbox
+        novaTarefa.status = ehPrioritaria ? "Prioritario" : "Nova";
+
+        var response = await client.PostAsJsonAsync("api/Auth/criar", novaTarefa);
+        if (response.IsSuccessStatusCode)
+        {
+            mensagem = "Tarefa criada com sucesso!";
+            novaTarefa = new CriarTarefaDTO();
+            ehPrioritaria = false;
+        }
+        else
+        {
+            mensagem = "Erro ao criar tarefa.";
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Nav.NavigateTo("/login", true);
+            }
+        }
+    }
+
+
+
+
+    public class CriarTarefaDTO
+    {
+        public string? descricao { get; set; }
+        public string? usuarioDestino { get; set; }
+        public DateTime dataExecucao { get; set; }
+        public string? status { get; set; }
+        public string? observacao { get; set; }
+
+    }
+
+    public class UsuarioDTO
+    {
+        public string Id { get; set; } = "";
+        public string Nome { get; set; } = "";
+        public string Email { get; set; } = "";
+    }
+}

@@ -29,7 +29,7 @@ else
 
   protected override async Task OnInitializedAsync()
   {
-    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
     if (!string.IsNullOrEmpty(token))
     {
@@ -50,13 +50,13 @@ else
 
   async Task Logout()
   {
-    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
 
     Http.DefaultRequestHeaders.Authorization =
     new AuthenticationHeaderValue("Bearer", token);
 
     await Http.PostAsync("api/auth/logout", null);
-    await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+    await JS.InvokeVoidAsync("localStorage.removeItem", "token");
 
     ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserLogout();
     Nav.NavigateTo("/login");

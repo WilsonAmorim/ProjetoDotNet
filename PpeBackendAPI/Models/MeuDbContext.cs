@@ -7,5 +7,15 @@ namespace PpeBackendAPI.Models
         public MeuDbContext(DbContextOptions<MeuDbContext> options) : base(options) { }
 
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Tarefa> Tarefas { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Tarefa>()
+                .Property(t => t.status)
+                .HasConversion<string>();
+        }
+
+
     }
 }

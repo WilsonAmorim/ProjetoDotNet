@@ -16,7 +16,7 @@ namespace PpeFrontend.Services
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+            var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
             if (string.IsNullOrWhiteSpace(token))
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -53,22 +53,32 @@ namespace PpeFrontend.Services
             {
                 foreach (var kvp in keyValuePairs)
                 {
+                    var key = kvp.Key switch
+                    {
+                        "role" => ClaimTypes.Role,
+                        "name" => ClaimTypes.Name,
+                        "unique_name" => ClaimTypes.Name, // 👈 Adiciona esse mapeamento
+                        _ => kvp.Key
+                    };
+
                     if (kvp.Value is JsonElement element && element.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var item in element.EnumerateArray())
                         {
-                            claims.Add(new Claim(kvp.Key, item.ToString()));
+                            claims.Add(new Claim(key, item.ToString()));
                         }
                     }
                     else
                     {
-                        claims.Add(new Claim(kvp.Key, kvp.Value?.ToString() ?? string.Empty));
+                        claims.Add(new Claim(key, kvp.Value?.ToString() ?? string.Empty));
                     }
                 }
             }
 
             return claims;
         }
+
+
 
         private byte[] ParseBase64WithoutPadding(string base64)
         {

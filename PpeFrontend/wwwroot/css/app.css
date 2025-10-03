@@ -135,3 +135,21 @@ code {
 .navbar-nav .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
+.btn-orange {
+  background-color: orange;
+  color: white;
+  border: none;
+}
+
+.lista-anexos {
+  list-style: none;
+  padding-left: 0;
+}
+
+.lista-anexos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
