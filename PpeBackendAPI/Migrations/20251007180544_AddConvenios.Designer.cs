@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PpeBackendAPI.Models;
 
@@ -10,9 +11,11 @@ using PpeBackendAPI.Models;
 namespace PpeBackendAPI.Migrations
 {
     [DbContext(typeof(MeuDbContext))]
-    partial class MeuDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007180544_AddConvenios")]
+    partial class AddConvenios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.5");
@@ -23,47 +26,47 @@ namespace PpeBackendAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Categoria")
+                    b.Property<string>("Municipio_lotacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ConvenioNome")
+                    b.Property<string>("categoria")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Cpf")
+                    b.Property<string>("convenio")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DataAdmissao")
+                    b.Property<string>("cpf")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DataAtualizacao")
+                    b.Property<DateTime>("data_admissao")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DataDemissao")
+                    b.Property<DateTime>("data_atualizacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Funcao")
+                    b.Property<DateTime>("data_demissao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Matricula")
+                    b.Property<string>("funcao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("MunicipioLotacao")
+                    b.Property<string>("matricula")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("nome")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PostoTrabalho")
+                    b.Property<string>("posto_trabalho")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Sexo")
+                    b.Property<int>("sexo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("situacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Situacao")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Usuario")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("usuario")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

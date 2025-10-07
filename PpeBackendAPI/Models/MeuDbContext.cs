@@ -8,6 +8,7 @@ namespace PpeBackendAPI.Models
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Tarefa> Tarefas { get; set; }
+        public DbSet<Convenio> Convenios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -438,6 +438,39 @@ namespace PpeBackendAPI.Controller
             System.IO.File.Delete(caminho);
             return Ok("Arquivo excluído com sucesso");
         }
+        // convenios
+        [Authorize]
+        [HttpGet("convenios")]
+        public IActionResult Convenios()
+        {
+
+            var conveniosListadosRaw = _context.Convenios
+                .ToList();
+
+
+            var conveiosCadastrados = conveniosListadosRaw
+                .Select(t => new ConvenioDTO
+                {
+                    Id = t.Id,
+                    ConvenioNome = t.ConvenioNome ?? "",
+                    Cpf = t.Cpf ?? "",
+                    Matricula = t.Matricula ?? "",
+                    Nome = t.Nome ?? "",
+                    Situacao = t.Situacao ?? "",
+                    Categoria = t.Categoria ?? "",
+                    DataAdmissao = t.DataAdmissao,
+                    DataDemissao = t.DataDemissao,
+                    Sexo = t.Sexo,
+                    Funcao = t.Funcao ?? "",
+                    DataAtualizacao = t.DataAtualizacao,
+                    PostoTrabalho = t.PostoTrabalho ?? "",
+                    MunicipioLotacao = t.MunicipioLotacao ?? "",
+                    Usuario = t.Usuario
+                })
+                .ToList();
+
+            return Ok(new { conveiosCadastrados });
+        }
 
         private string GerarRefreshToken()
         {

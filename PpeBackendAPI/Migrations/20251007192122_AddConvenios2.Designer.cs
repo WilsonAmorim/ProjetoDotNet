@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PpeBackendAPI.Models;
 
@@ -10,9 +11,11 @@ using PpeBackendAPI.Models;
 namespace PpeBackendAPI.Migrations
 {
     [DbContext(typeof(MeuDbContext))]
-    partial class MeuDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007192122_AddConvenios2")]
+    partial class AddConvenios2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.5");
@@ -32,13 +35,13 @@ namespace PpeBackendAPI.Migrations
                     b.Property<string>("Cpf")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DataAdmissao")
+                    b.Property<DateTime>("DataAdmissao")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataAtualizacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DataDemissao")
+                    b.Property<DateTime>("DataDemissao")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Funcao")
@@ -56,14 +59,14 @@ namespace PpeBackendAPI.Migrations
                     b.Property<string>("PostoTrabalho")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Sexo")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Sexo")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Situacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Usuario")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Usuario")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

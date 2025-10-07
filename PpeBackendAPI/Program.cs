@@ -4,7 +4,7 @@ using System.Text;
 using PpeBackendAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
-
+using PpeBackendAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var chave = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Chave JWT não configurada.");
@@ -69,6 +69,15 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<MeuDbContext>();
+    if (!context.Convenios.Any())
+    {
+        var usuarioLogado = "wilson.amorim";
+        ConvenioImportService.ImportarConvenios(context, usuarioLogado);
+    }
+}
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
