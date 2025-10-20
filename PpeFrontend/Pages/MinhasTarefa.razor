@@ -253,7 +253,7 @@ else
 
         try
         {
-            var response = await client.GetAsync("api/Auth/usuarios-ativos");
+            var response = await client.GetAsync("api/Tarefa/usuarios-ativos");
 
             if (response.IsSuccessStatusCode)
             {
@@ -281,7 +281,7 @@ else
 
         try
         {
-            var resultado = await client.GetFromJsonAsync<TarefasResponse>("api/Auth/minhas-tarefas");
+            var resultado = await client.GetFromJsonAsync<TarefasResponse>("api/Tarefa/minhas-tarefas");
 
             tarefasRecebidas = resultado?.recebidas ?? new();
             tarefasEnviadas = resultado?.enviadas ?? new();
@@ -302,14 +302,14 @@ else
     private async Task ConcluirTarefa(int id)
     {
         var client = ClientFactory.CreateClient("Autenticado");
-        await client.PutAsJsonAsync($"api/Auth/concluir/{id}", new { });
+        await client.PutAsJsonAsync($"api/Tarefa/concluir/{id}", new { });
         await CarregarTarefas();
     }
 
     private async Task MarcarPrioritario(int id)
     {
         var client = ClientFactory.CreateClient("Autenticado");
-        await client.PutAsJsonAsync($"api/tarefas/priorizar/{id}", new { });
+        await client.PutAsJsonAsync($"api/Tarefa/priorizar/{id}", new { });
         await CarregarTarefas();
     }
 
@@ -375,7 +375,7 @@ else
 
         try
         {
-            var response = await client.PutAsJsonAsync($"api/Auth/editar/{tarefaEditando.Id}", payload);
+            var response = await client.PutAsJsonAsync($"api/Tarefa/editar/{tarefaEditando.Id}", payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -489,7 +489,7 @@ else
             return;
 
         // Garanta que o endpoint esteja correto:
-        var response = await Http.PostAsync($"api/Auth/tarefas/{tarefaId}/anexos", content);
+        var response = await Http.PostAsync($"api/Tarefa/tarefas/{tarefaId}/anexos", content);
 
         if (response.IsSuccessStatusCode)
         {
@@ -518,7 +518,7 @@ else
 
         // A chamada GetFromJsonAsync é crucialmente assíncrona.
         // Ela busca os nomes dos arquivos do seu endpoint [HttpGet("tarefas/{id}/anexos")]
-        anexos = await Http.GetFromJsonAsync<List<string>>($"api/Auth/tarefas/{tarefaId}/anexos") ?? new();
+        anexos = await Http.GetFromJsonAsync<List<string>>($"api/Tarefa/tarefas/{tarefaId}/anexos") ?? new();
 
         // NOTA: Removemos o StateHasChanged daqui, pois ele será chamado no AbrirModal
         // após a Task ser concluída, otimizando o número de renderizações.
@@ -527,14 +527,14 @@ else
     private void Baixar(string nome)
     {
         var tarefaId = tarefaEditando?.Id;
-        var url = $"api/Auth/tarefas/{tarefaId}/anexos/{nome}";
+        var url = $"api/Tarefa/tarefas/{tarefaId}/anexos/{nome}";
         NavigationManager.NavigateTo(url, true);
     }
 
     private async Task Excluir(string nome)
     {
         var tarefaId = tarefaEditando?.Id;
-        var response = await Http.DeleteAsync($"api/Auth/tarefas/{tarefaId}/anexos/{nome}");
+        var response = await Http.DeleteAsync($"api/Tarefa/tarefas/{tarefaId}/anexos/{nome}");
 
         if (response.IsSuccessStatusCode)
         {

@@ -69,15 +69,15 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<MeuDbContext>();
-    if (!context.Convenios.Any())
-    {
-        var usuarioLogado = "wilson.amorim";
-        ConvenioImportService.ImportarConvenios(context, usuarioLogado);
-    }
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<MeuDbContext>();
+//     if (!context.Convenios.Any())
+//     {
+//         var usuarioLogado = "wilson.amorim";
+//         ConvenioImportService.ImportarConvenios(context, usuarioLogado);
+//     }
+// }
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();

@@ -18,6 +18,7 @@ namespace PpeBackendAPI.Controller
             _context = context;
         }
 
+        [Authorize("admin")]
         [HttpPost("registrar")]
         public IActionResult Registrar([FromBody] UsuarioDTO dto)
         {

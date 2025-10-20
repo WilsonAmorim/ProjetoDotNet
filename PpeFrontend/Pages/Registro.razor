@@ -51,7 +51,7 @@
 
   async Task Registrar()
   {
-    var response = await Http.PostAsJsonAsync("api/Auth/registrar", usuario);
+    var response = await Http.PostAsJsonAsync("api/Usuarios/registrar", usuario);
 
     if (response.IsSuccessStatusCode)
     {

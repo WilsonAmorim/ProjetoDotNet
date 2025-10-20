@@ -1,0 +1,49 @@
+@page "/importar-convenios"
+@inject IHttpClientFactory ClientFactory
+
+
+@code {
+    private HttpClient Http => ClientFactory.CreateClient("Autenticado");
+}
+
+<h3>Importar Convênios</h3>
+
+<InputFile OnChange="HandleFileUpload" multiple />
+@if (mensagem != null)
+{
+    <p>@mensagem</p>
+}
+
+@code {
+    string? mensagem;
+
+
+    async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            var content = new MultipartFormDataContent();
+            var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            content.Add(new StreamContent(stream), "arquivo", file.Name);
+
+            var response = await Http.PostAsync("api/Convenios/importar-inicial", content);
+
+
+            mensagem = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var texto = await response.Content.ReadAsStringAsync();
+                mensagem = $"✅ Importação concluída: {texto}";
+            }
+            else
+            {
+                var erro = await response.Content.ReadAsStringAsync();
+                mensagem = $"❌ Erro ({response.StatusCode}): {erro}";
+            }
+
+
+        }
+
+    }
+}
