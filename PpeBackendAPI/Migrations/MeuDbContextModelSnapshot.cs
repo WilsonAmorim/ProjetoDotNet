@@ -9,13 +9,62 @@ using PpeBackendAPI.Models;
 
 namespace PpeBackendAPI.Migrations
 {
-    [DbContext(typeof(MeuDbContext))]
+    [DbContext(typeof(PpeDbContext))]
     partial class MeuDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.5");
+
+            modelBuilder.Entity("PpeBackendAPI.Models.Conferencias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ConvenioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConvenioNome")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataRetorno")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DocumentoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LinkOcorrencia")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OcorrenciaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RegistroOcorrenciasId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Usuario")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConvenioId");
+
+                    b.HasIndex("DocumentoId");
+
+                    b.HasIndex("OcorrenciaId");
+
+                    b.HasIndex("RegistroOcorrenciasId");
+
+                    b.ToTable("Conferencias");
+                });
 
             modelBuilder.Entity("PpeBackendAPI.Models.Convenio", b =>
                 {
@@ -70,6 +119,51 @@ namespace PpeBackendAPI.Migrations
                     b.ToTable("Convenios");
                 });
 
+            modelBuilder.Entity("PpeBackendAPI.Models.Documentos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Documento")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Documentos");
+                });
+
+            modelBuilder.Entity("PpeBackendAPI.Models.Ocorrencias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DocumentoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Ocorrencia")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Ocorrencias");
+                });
+
+            modelBuilder.Entity("PpeBackendAPI.Models.RegistroOcorrencias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RegistroOcorrencias");
+                });
+
             modelBuilder.Entity("PpeBackendAPI.Models.Tarefa", b =>
                 {
                     b.Property<int>("Id")
@@ -114,6 +208,9 @@ namespace PpeBackendAPI.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Login")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Nome")
                         .HasColumnType("TEXT");
 
@@ -133,6 +230,41 @@ namespace PpeBackendAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("PpeBackendAPI.Models.Conferencias", b =>
+                {
+                    b.HasOne("PpeBackendAPI.Models.Convenio", "Convenio")
+                        .WithMany()
+                        .HasForeignKey("ConvenioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PpeBackendAPI.Models.Documentos", "Documento")
+                        .WithMany()
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PpeBackendAPI.Models.Ocorrencias", "Ocorrencia")
+                        .WithMany()
+                        .HasForeignKey("OcorrenciaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PpeBackendAPI.Models.RegistroOcorrencias", "Descricao")
+                        .WithMany()
+                        .HasForeignKey("RegistroOcorrenciasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Convenio");
+
+                    b.Navigation("Descricao");
+
+                    b.Navigation("Documento");
+
+                    b.Navigation("Ocorrencia");
                 });
 #pragma warning restore 612, 618
         }

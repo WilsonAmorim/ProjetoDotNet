@@ -11,9 +11,9 @@ namespace PpeBackendAPI.Controllers;
 [Route("api/[controller]")]
 public class ConveniosController : ControllerBase
 {
-    private readonly MeuDbContext _context;
+    private readonly PpeDbContext _context;
 
-    public ConveniosController(MeuDbContext context)
+    public ConveniosController(PpeDbContext context)
     {
         _context = context;
     }
@@ -54,8 +54,6 @@ public class ConveniosController : ControllerBase
             return StatusCode(500, "Erro interno ao importar");
         }
     }
-
-
 
 
     // [Authorize("usuario")]
@@ -132,6 +130,69 @@ public class ConveniosController : ControllerBase
         Console.WriteLine($"🔐 Token recebido. Usuário: {usuario}, Admin: {roleAdmin}");
         return Ok($"Usuário: {usuario}, Admin: {roleAdmin}");
     }
+
+    [Authorize(Roles = "usuario")]
+    [HttpPost("pesquisar")]
+    public IActionResult PesquisarConvenios([FromBody] PesquisaConvenioDto filtro)
+    {
+        Console.WriteLine($"🔐 Filtro recebido. Usuário: {filtro.Convenio}");
+        if (filtro.Convenio == "Fesfsus Lote 01")
+        {
+            var registros = _context.Convenios
+           .Where(c =>
+               (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
+               (filtro.Situacao == "" || c.Situacao == filtro.Situacao) &&
+               c.DataAdmissao.HasValue &&
+               c.DataAdmissao.Value.Month == filtro.Mes &&
+               c.DataAdmissao.Value.Year == filtro.Ano)
+
+           .Select(c => new ConvenioRegistroDto
+           {
+               Id = c.Id,
+               Cpf = c.Cpf ?? "",
+               Matricula = c.Matricula ?? "",
+               Nome = c.Nome ?? "",
+               DataAdmissao = c.DataAdmissao,
+               DataDemissao = c.DataDemissao,
+               Sexo = c.Sexo ?? "",
+               Situacao = c.Situacao ?? "",
+               Categoria = c.Categoria ?? "",
+               Funcao = c.Funcao ?? "",
+           })
+           .ToList();
+            return Ok(registros);
+        }
+        else
+        {
+            var registros = _context.Convenios
+           .Where(c =>
+               (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
+               (filtro.Categoria == "" || c.Categoria == filtro.Categoria) &&
+               c.DataAdmissao.HasValue &&
+               c.DataAdmissao.Value.Month == filtro.Mes &&
+               c.DataAdmissao.Value.Year == filtro.Ano)
+
+           .Select(c => new ConvenioRegistroDto
+           {
+               Cpf = c.Cpf ?? "",
+               Matricula = c.Matricula ?? "",
+               Nome = c.Nome ?? "",
+               DataAdmissao = c.DataAdmissao,
+               DataDemissao = c.DataDemissao,
+               Sexo = c.Sexo ?? "",
+               Situacao = c.Situacao ?? "",
+               Categoria = c.Categoria ?? "",
+               Funcao = c.Funcao ?? "",
+           })
+           .ToList();
+            return Ok(registros);
+        }
+
+
+
+    }
+
+
 
 
 }

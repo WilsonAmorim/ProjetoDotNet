@@ -50,6 +50,27 @@ namespace PpeBackendAPI.DTOs
         public string MunicipioLotacao { get; set; } = string.Empty;
     }
 
+    public class ConvenioRegistroDto
+    {
+        public int Id { get; set; }
+        public string ConvenioNome { get; set; } = "";
+        public string Cpf { get; set; } = "";
+        public string Matricula { get; set; } = "";
+        public string Nome { get; set; } = "";
+        public DateTime? DataAdmissao { get; set; }
+        public DateTime? DataDemissao { get; set; }
+        public string Sexo { get; set; } = "";
+        public string Situacao { get; set; } = "";
+        public string Categoria { get; set; } = "";
+        public string Funcao { get; set; } = "";
+    }
 
-
+    public class PesquisaConvenioDto
+    {
+        public int Mes { get; set; }
+        public int Ano { get; set; }
+        public string Convenio { get; set; } = "";
+        public string Situacao { get; set; } = "";
+        public string Categoria { get; set; } = "";
+    }
 }

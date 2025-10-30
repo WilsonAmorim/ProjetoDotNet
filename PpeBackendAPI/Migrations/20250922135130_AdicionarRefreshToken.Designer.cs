@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace PpeBackendAPI.Migrations
 {
-    [DbContext(typeof(MeuDbContext))]
+    [DbContext(typeof(PpeDbContext))]
     [Migration("20250922135130_AdicionarRefreshToken")]
     partial class AdicionarRefreshToken
     {

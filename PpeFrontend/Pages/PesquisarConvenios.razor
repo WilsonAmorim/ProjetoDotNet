@@ -1,0 +1,406 @@
+@page "/conferencia"
+
+@using PpeFrontend.DTOs
+@using PpeFrontend.Models
+@inject HttpClient Http
+@inject IHttpClientFactory ClientFactory
+
+
+
+
+<h3>🔍 Pesquisa de Convênios</h3>
+
+<div class="card p-3 mb-4">
+    <div class="row g-3">
+        <div class="col-md-2">
+            <label>Mês</label>
+            <select class="form-select" @bind="mes">
+                @foreach (var m in Enumerable.Range(1, 12))
+                {
+                    <option value="@m">@m.ToString("D2")</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>Ano</label>
+            <select class="form-select" @bind="ano">
+                @foreach (var a in Enumerable.Range(2020, 10))
+                {
+                    <option value="@a">@a</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label>Convênio</label>
+            <select class="form-select" @bind="convenioSelecionado">
+                @foreach (var c in convenios)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>Situação</label>
+            <select class="form-select" @bind="situacao">
+                <option value="">Todos</option>
+                <option value="Ativo">Admitido</option>
+                <option value="Demitido">Demitido</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary me-2" @onclick="Pesquisar">Pesquisar</button>
+            <button class="btn btn-secondary" @onclick="Limpar">Limpar</button>
+        </div>
+    </div>
+</div>
+
+@if (resultados.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Ações</th>
+                <th>CPF</th>
+                <th>Nome</th>
+                <th>Data Admissão</th>
+                <th>Data Demissão</th>
+                <th>Sexo</th>
+                @if (convenioSelecionado == "Fesfsus Lote 01")
+                {
+                    <th>Situação</th>
+                }
+                else if (convenioSelecionado == "Flem Lote 02" || convenioSelecionado == "Flem Lote 03")
+                {
+                    <th>Categoria</th>
+                }
+                <th>Função</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var conferencia in resultados)
+            {
+                <tr>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info me-1" @onclick="() => AbrirModal(conferencia)">🔍</button>
+                    </td>
+                    <td>@conferencia.Id</td>
+                    <td>@conferencia.Cpf</td>
+                    <td>@conferencia.Nome</td>
+                    <td>@conferencia.DataAdmissao?.ToString("dd/MM/yyyy")</td>
+                    <td>@conferencia.DataDemissao?.ToString("dd/MM/yyyy")</td>
+                    <td>@(string.IsNullOrWhiteSpace(conferencia.Sexo) ? "" : conferencia.Sexo.Trim().ToUpper().Substring(0, 1))
+                    </td>
+                    @if (convenioSelecionado == "Fesfsus Lote 01")
+                    {
+                        <td>@conferencia.Situacao</td>
+                    }
+                    else if (convenioSelecionado == "Flem Lote 02" || convenioSelecionado == "Flem Lote 03")
+                    {
+                        <td>@conferencia.Categoria</td>
+                    }
+                    <td>@conferencia.Situacao</td>
+                    <td>@conferencia.Funcao</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (pesquisado)
+{
+    <p class="text-muted">Nenhum resultado encontrado.</p>
+}
+
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 Conferência de PPE</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><strong>Usuário PPE:</strong> @usuario</div>
+                        <div class="col-md-6"><strong>Convênio:</strong> @conferenciaSelecionada.Nome</div>
+                        <div class="col-md-6"><strong>Id Beneficiário:</strong> @conferenciaSelecionada.Id</div>
+                        <div class="col-md-6"><strong>Situação:</strong> @conferenciaSelecionada.Situacao</div>
+                        <div class="col-md-6"><strong>Categoria:</strong> @conferenciaSelecionada.Categoria</div>
+                        <div class="col-md-6"><strong>CPF:</strong> @conferenciaSelecionada.Cpf</div>
+                        <div class="col-md-6"><strong>Matrícula:</strong> @conferenciaSelecionada.Matricula</div>
+                        <div class="col-md-6"><strong>Nome:</strong> @conferenciaSelecionada.Nome</div>
+                        <div class="col-md-6"><strong>Data Admissão:</strong>
+                            @conferenciaSelecionada.DataAdmissao?.ToString("dd/MM/yyyy")</div>
+                        <div class="col-md-6"><strong>Data Demissão:</strong>
+                            @(conferenciaSelecionada.DataDemissao?.ToString("dd/MM/yyyy") ?? "—")</div>
+                        <div class="col-md-6"><strong>Sexo:</strong>
+                            @(string.IsNullOrWhiteSpace(conferenciaSelecionada.Sexo) ? "" :
+                                                    conferenciaSelecionada.Sexo.Trim().ToUpper().Substring(0, 1))</div>
+                        <div class="col-md-6"><strong>Função:</strong> @conferenciaSelecionada.Funcao</div>
+                    </div>
+
+                    <hr />
+                    @* Inicio estrutura modal *@
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label>Documentos</label>
+                            <InputSelect class="form-select" @bind-Value="documentoId" TValue="int">
+                                <option value="">Selecione</option>
+                                @foreach (var doc in documentosP)
+                                {
+                                    <option value="@doc.Id">@doc.Documento</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Ocorrência</label>
+                            <InputSelect class="form-select" @bind-Value="ocorrenciaId">
+                                <option value="">Selecione</option>
+                                @foreach (var oc in ocorrencias)
+                                {
+                                    <option value="@oc.Id">@oc.Ocorrencia</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Registro da Ocorrência</label>
+                            <InputSelect class="form-select" @bind-Value="registroOcorrenciasId">
+                                <option value="">Selecione</option>
+                                @foreach (var reg in registroOcorrencias)
+                                {
+                                    <option value="@reg.Id">@reg.Descricao</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    @* fim estruturas modal *@
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="RegistrarConferencia">Registrar</button>
+                    <button class="btn btn-secondary" @onclick="FecharModal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    int mes = DateTime.Now.Month;
+    int ano = DateTime.Now.Year;
+    string convenioSelecionado = "";
+    string situacao = "";
+    string categoria = "";
+
+    bool pesquisado = false;
+
+    bool mostrarModal = false;
+    ConvenioRegistroDTO conferenciaSelecionada = new();
+    string usuario = "wilson.amorim"; // ou pegue do contexto
+
+    int registroOcorrenciasId;
+    int ocorrenciaId;
+    string linkOcorrencia = "";
+    private int _documentoId;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDocumentos();
+        await CarregarRegistroOcorrencias();
+
+
+    }
+
+    List<string> convenios = new() { "Fesfsus Lote 01", "Flem Lote 02", "Flem Lote 03" };
+    List<ConvenioRegistroDTO> resultados = new();
+
+    List<Documentos> documentos = new();
+    List<OcorrenciasDTO> ocorrencias = new();
+    List<RegistroOcorrenciasDTO> registroOcorrencias = new();
+
+    async Task Pesquisar()
+    {
+        pesquisado = true;
+
+
+        object query;
+
+        if (convenioSelecionado == "Fesfsus Lote 01")
+        {
+            query = new
+            {
+                Mes = mes,
+                Ano = ano,
+                Convenio = convenioSelecionado,
+                Situacao = situacao
+            };
+        }
+        else
+        {
+            categoria = situacao == "Ativo" ? "CONTRATADO" : "DESLIGADO";
+
+            query = new
+            {
+                Mes = mes,
+                Ano = ano,
+                Convenio = convenioSelecionado,
+                Categoria = categoria
+            };
+        }
+
+
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        var response = await http.PostAsJsonAsync("api/Convenios/pesquisar", query);
+
+        Console.WriteLine($"🔽 Resultado da query: {query}");
+
+
+        if (response.IsSuccessStatusCode)
+        {
+            resultados = await response.Content.ReadFromJsonAsync<List<ConvenioRegistroDTO>>() ?? new();
+        }
+    }
+
+
+    void Limpar()
+    {
+        mes = DateTime.Now.Month;
+        ano = DateTime.Now.Year;
+        convenioSelecionado = "";
+        situacao = "";
+        resultados.Clear();
+        pesquisado = false;
+    }
+
+    public class ConvenioRegistroDto
+    {
+
+        public string Cpf { get; set; } = "";
+        public string Matricula { get; set; } = "";
+        public string Nome { get; set; } = "";
+        public DateTime? DataAdmissao { get; set; }
+        public DateTime? DataDemissao { get; set; }
+        public string Sexo { get; set; } = "";
+        public string Situacao { get; set; } = "";
+        public string Categoria { get; set; } = "";
+        public string Funcao { get; set; } = "";
+
+    }
+
+
+    List<Documentos> documentosP = new();
+    // se tiver categorias separadas
+
+
+    private void AbrirModal(ConvenioRegistroDTO conferencia)
+    {
+        conferenciaSelecionada = conferencia;
+        mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+        documentoId = 0;
+        ocorrenciaId = 0;
+        registroOcorrenciasId = 0;
+        linkOcorrencia = "";
+    }
+
+    private async Task RegistrarConferencia()
+    {
+        Console.WriteLine("");
+        var dto = new ConferenciaDTO
+        {
+            ConvenioId = conferenciaSelecionada.Id,
+            DocumentoId = documentoId,
+            OcorrenciaId = ocorrenciaId,
+            RegistroOcorrenciasId = registroOcorrenciasId,
+            ConvenioNome = conferenciaSelecionada.Nome,
+            Status = "Registrado",
+            DataRetorno = DateTime.Now,
+            LinkOcorrencia = linkOcorrencia,
+            Usuario = usuario,
+            DataAtualizacao = DateTime.Now
+        };
+
+        var http = ClientFactory.CreateClient("Autenticado");
+        var response = await http.PostAsJsonAsync("api/Conferencias/registrar", dto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            FecharModal();
+            // mostrar alerta ou atualizar lista
+        }
+    }
+
+    async Task CarregarDocumentos()
+    {
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        // Busca Documentos
+        documentosP = await http.GetFromJsonAsync<List<Documentos>>(
+        $"api/Conferencias/documentos/"
+        ) ?? new();
+        Console.WriteLine($"🔍 Documentos recebidos: {documentosP.Count}");
+    }
+
+    // A função CarregarOcorrencias agora recebe o ID diretamente
+    async Task CarregarOcorrenciasPorId(int id)
+    {
+        // Não precisa de int.Parse(e.Value...)
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        // Busca ocorrências relacionadas ao documento selecionado
+        ocorrencias = await http.GetFromJsonAsync<List<OcorrenciasDTO>>(
+        $"api/Conferencias/documento/{id}"
+        ) ?? new();
+
+        StateHasChanged();
+    }
+
+
+    public int documentoId
+    {
+        get => _documentoId;
+        set
+        {
+            // Verifica se o valor mudou para evitar chamadas desnecessárias
+            if (_documentoId != value)
+            {
+                // Guarda o novo valor no campo de suporte
+                _documentoId = value;
+
+                // **A CHAVE É AQUI:** Se o novo ID for válido,
+                // Chame a função assíncrona para buscar os dados.
+                // O '_' no começo apenas diz ao compilador que não estamos esperando o resultado da Task.
+                if (_documentoId > 0)
+                {
+                    _ = CarregarOcorrenciasPorId(_documentoId);
+                }
+                else
+                {
+                    // Limpa as ocorrências se "Selecione" for escolhido (ID 0)
+                    ocorrencias.Clear();
+                }
+            }
+        }
+    }
+
+
+    async Task CarregarRegistroOcorrencias()
+    {
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        // Busca Documentos
+        registroOcorrencias = await http.GetFromJsonAsync<List<RegistroOcorrenciasDTO>>(
+        $"api/Conferencias/registro-ocorrencias/"
+        ) ?? new();
+
+    }
+
+
+
+}

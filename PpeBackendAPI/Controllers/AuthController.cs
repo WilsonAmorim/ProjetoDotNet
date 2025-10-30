@@ -18,10 +18,10 @@ namespace PpeBackendAPI.Controller
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly MeuDbContext _context;
+        private readonly PpeDbContext _context;
         private readonly IConfiguration _config;
 
-        public AuthController(MeuDbContext context, IConfiguration config)
+        public AuthController(PpeDbContext context, IConfiguration config)
         {
             _context = context;
             _config = config;
@@ -30,7 +30,7 @@ namespace PpeBackendAPI.Controller
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDTO dto)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == dto.Email);
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == dto.Login);
 
             // ✅ Verificação extra para evitar warnings CS8604
             if (string.IsNullOrEmpty(dto.Senha) || string.IsNullOrEmpty(usuario?.SenhaHash))
@@ -89,18 +89,19 @@ namespace PpeBackendAPI.Controller
             return Ok("Role atualizada para admin");
         }
 
-        [Authorize]
+        [Authorize(Roles = "usuario")]
         [HttpGet("perfil")]
         public IActionResult Perfil()
         {
-            var email = User.Identity?.Name;
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
+            var login = User.Identity?.Name;
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == login);
 
             if (usuario == null)
                 return NotFound("Usuário não encontrado");
 
             return Ok(new
             {
+                usuario.Login,
                 usuario.Nome,
                 usuario.Email,
                 usuario.Role,
@@ -133,10 +134,13 @@ namespace PpeBackendAPI.Controller
             var claims = new[]
             {
                 new Claim(ClaimTypes.Email, usuario.Email ?? ""),
+                new Claim("login", usuario.Login ?? ""),
                 new Claim("id", usuario.Id.ToString()),
+                new Claim("nameid", usuario.Login ?? ""),
                 new Claim(ClaimTypes.Role, usuario.Role ?? "usuario"),
-                new Claim(ClaimTypes.Name, usuario.Nome ?? "usuario"),
-                new Claim("name", usuario.Nome ?? "usuario")
+                new Claim(ClaimTypes.NameIdentifier, usuario.Login ?? ""),
+                new Claim(ClaimTypes.Name, usuario.Login ?? "login"),
+                new Claim("nome", usuario.Nome ?? "usuario")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -145,7 +149,7 @@ namespace PpeBackendAPI.Controller
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims, "jwt", ClaimTypes.Name, ClaimTypes.Role),
-                Expires = agora.AddMinutes(15),
+                Expires = agora.AddMinutes(30),
                 NotBefore = agora,
                 IssuedAt = agora,
                 SigningCredentials = creds,
@@ -157,9 +161,6 @@ namespace PpeBackendAPI.Controller
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
-        // Tarefas
-
 
 
         private string GerarRefreshToken()

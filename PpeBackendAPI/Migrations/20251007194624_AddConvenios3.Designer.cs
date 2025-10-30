@@ -10,7 +10,7 @@ using PpeBackendAPI.Models;
 
 namespace PpeBackendAPI.Migrations
 {
-    [DbContext(typeof(MeuDbContext))]
+    [DbContext(typeof(PpeDbContext))]
     [Migration("20251007194624_AddConvenios3")]
     partial class AddConvenios3
     {

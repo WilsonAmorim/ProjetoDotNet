@@ -1,0 +1,72 @@
+@page "/trocar-senha"
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<h3>Trocar Senha</h3>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+  <div class="alert alert-info">@mensagem</div>
+}
+
+<div class="form-group">
+  <label>Senha atual</label>
+  <input type="password" @bind="senhaAtual" class="form-control" />
+</div>
+
+<div class="form-group">
+  <label>Nova senha</label>
+  <input type="password" @bind="novaSenha" class="form-control" />
+</div>
+
+<div class="form-group">
+  <label>Confirmar nova senha</label>
+  <input type="password" @bind="confirmacaoSenha" class="form-control" />
+</div>
+
+<button class="btn btn-primary" @onclick="TrocaSenha">Salvar</button>
+
+@code {
+  string senhaAtual = "", novaSenha = "", confirmacaoSenha = "", mensagem = "";
+
+  async Task TrocaSenha()
+  {
+    mensagem = "";
+
+    if (string.IsNullOrWhiteSpace(senhaAtual) || string.IsNullOrWhiteSpace(novaSenha))
+    {
+      mensagem = "Preencha todos os campos.";
+      return;
+    }
+
+    if (novaSenha != confirmacaoSenha)
+    {
+      mensagem = "A nova senha e a confirmação não coincidem.";
+      return;
+    }
+
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+    Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    var payload = new
+    {
+      senhaAtual,
+      novaSenha
+    };
+
+    var response = await Http.PostAsJsonAsync("http://localhost:5271/api/Usuarios/trocar-senha", payload);
+
+    if (response.IsSuccessStatusCode)
+    {
+      mensagem = "Senha alterada com sucesso!";
+      senhaAtual = novaSenha = confirmacaoSenha = "";
+    }
+    else
+    {
+      var erro = await response.Content.ReadAsStringAsync();
+      mensagem = $"Erro ao alterar senha: {erro}";
+    }
+  }
+}

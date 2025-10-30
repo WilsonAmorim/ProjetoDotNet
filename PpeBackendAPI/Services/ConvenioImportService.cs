@@ -12,7 +12,7 @@ namespace PpeBackendAPI.Services;
 
 public static class ConvenioImportService
 {
-    public static void ImportarConvenios(MeuDbContext context, string usuarioLogado)
+    public static void ImportarConvenios(PpeDbContext context, string usuarioLogado)
     {
         var arquivos = new[] { "conv1.csv", "conv2.csv", "conv3.csv" };
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -35,7 +35,7 @@ public static class ConvenioImportService
 
             string convenioNome = arquivo switch
             {
-                "conv1.csv" => "Fesfusu Lote 01",
+                "conv1.csv" => "Fesfsus Lote 01",
                 "conv2.csv" => "Flem Lote 02",
                 "conv3.csv" => "Flem Lote 03",
                 _ => "Desconhecido"
@@ -156,7 +156,7 @@ public static class ConvenioImportService
         context.SaveChanges();
     }
 
-    public static async Task ImportarConvenioDoUpload(MeuDbContext context, StreamReader reader, string nomeArquivo, string usuarioLogado)
+    public static async Task ImportarConvenioDoUpload(PpeDbContext context, StreamReader reader, string nomeArquivo, string usuarioLogado)
     {
         Console.WriteLine($"📂 Iniciando leitura do arquivo: {nomeArquivo}");
 
@@ -173,7 +173,7 @@ public static class ConvenioImportService
 
         string convenioNome = nomeArquivo switch
         {
-            "conv1.csv" => "Fesfusu Lote 01",
+            "conv1.csv" => "Fesfsus Lote 01",
             "conv2.csv" => "Flem Lote 02",
             "conv3.csv" => "Flem Lote 03",
             _ => "Desconhecido"

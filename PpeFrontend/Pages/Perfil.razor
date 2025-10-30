@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Net.Http.Headers
 @using PpeFrontend.Services
+@using PpeFrontend.DTOs
 
 @inject HttpClient Http
 @inject IJSRuntime JS
@@ -10,17 +11,18 @@
 
 <h3>Perfil</h3>
 
-@if (perfil == null)
+@* @if (perfil == null)
 {
-  <p>Carregando...</p>
+  Nav.NavigateTo("/login", forceLoad: true);
 }
 else
-{
-  <p><strong>Nome:</strong> @perfil.Nome</p>
-  <p><strong>Email:</strong> @perfil.Email</p>
-  <p><strong>Role:</strong> @perfil.Role</p>
-  <p><strong>Refresh expira em:</strong> @perfil.RefreshExpiraEm</p>
-}
+{ *@
+<p><strong>Login:</strong> @perfil.Login</p>
+<p><strong>Nome:</strong> @perfil.Nome</p>
+<p><strong>Email:</strong> @perfil.Email</p>
+<p><strong>Role:</strong> @perfil.Role</p>
+<p><strong>Refresh expira em:</strong> @perfil.RefreshExpiraEm</p>
+@* } *@
 
 <button class="btn btn-danger" @onclick="Logout">Sair</button>
 
@@ -29,7 +31,7 @@ else
 
   protected override async Task OnInitializedAsync()
   {
-    var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
 
     if (!string.IsNullOrEmpty(token))
     {
@@ -38,7 +40,7 @@ else
 
       try
       {
-        perfil = await Http.GetFromJsonAsync<PerfilResponse>("api/Auth/perfil");
+        perfil = await Http.GetFromJsonAsync<PerfilResponse>("http://localhost:5271/api/Auth/perfil");
       }
       catch (HttpRequestException ex)
       {
@@ -50,12 +52,12 @@ else
 
   async Task Logout()
   {
-    var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
 
     Http.DefaultRequestHeaders.Authorization =
     new AuthenticationHeaderValue("Bearer", token);
 
-    await Http.PostAsync("api/auth/logout", null);
+    await Http.PostAsync("http://localhost:5271/api/Auth/logout", null);
     await JS.InvokeVoidAsync("localStorage.removeItem", "token");
 
     ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserLogout();
@@ -64,6 +66,7 @@ else
 
   public class PerfilResponse
   {
+    public string? Login { get; set; } = string.Empty;
     public string Nome { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;

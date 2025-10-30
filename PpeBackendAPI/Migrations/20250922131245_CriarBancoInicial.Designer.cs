@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace PpeBackendAPI.Migrations
 {
-    [DbContext(typeof(MeuDbContext))]
+    [DbContext(typeof(PpeDbContext))]
     [Migration("20250922131245_CriarBancoInicial")]
     partial class CriarBancoInicial
     {

@@ -11,9 +11,9 @@ namespace PpeBackendAPI.Controllers;
 [Route("api/[controller]")]
 public class TarefaController : ControllerBase
 {
-    private readonly MeuDbContext _context;
+    private readonly PpeDbContext _context;
 
-    public TarefaController(MeuDbContext context)
+    public TarefaController(PpeDbContext context)
     {
         _context = context;
     }

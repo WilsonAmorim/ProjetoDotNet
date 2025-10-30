@@ -5,19 +5,37 @@
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
+<link href="css/login.css" rel="stylesheet" />
+<div class="login-container">
+  <div class="login-card">
+    <h2>Login</h2>
 
-<h3>Login</h3>
+    <div class="input-group">
+      <span class="icon">📧</span>
+      <input @bind="login" placeholder="Login" />
+    </div>
 
-<input @bind="email" placeholder="Email" />
-<input @bind="senha" placeholder="Senha" type="password" />
-<button @onclick="FazerLogin">Entrar</button>
+    <div class="input-group">
+      <span class="icon">🔒</span>
+      <input @bind="senha" placeholder="Senha" type="password" />
+    </div>
+
+    <div class="forgot">
+      <a href="#">Esqueceu a senha?</a>
+    </div>
+
+    <button class="login-button" @onclick="FazerLogin">Entrar</button>
+
+
+  </div>
+</div>
 
 @code {
-  string email = "", senha = "";
+  string login = "", senha = "";
 
   async Task FazerLogin()
   {
-    var payload = new { email, senha };
+    var payload = new { login, senha };
     var response = await Http.PostAsJsonAsync("http://localhost:5271/api/Auth/login", payload);
     var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
@@ -26,14 +44,13 @@
       await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
       ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
       Nav.NavigateTo("/minhas-tarefas", forceLoad: true);
-
     }
   }
+
 
   public class LoginResponse
   {
     public string Token { get; set; } = string.Empty;
     public string refreshToken { get; set; } = "";
   }
-
 }

@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 var chave = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Chave JWT não configurada.");
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
 
-builder.Services.AddDbContext<MeuDbContext>(options =>
+builder.Services.AddDbContext<PpeDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<FormOptions>(options =>
@@ -47,25 +47,35 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazor",
-        policy => policy
-            .WithOrigins("http://localhost:5271") // Porta padrão do Vite/Blazor
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+    options.AddPolicy("BlazorCors", policy =>
+    {
+        policy.WithOrigins("http://localhost:5271", "http://localhost:5239")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowBlazor",
+//         policy => policy
+//             .WithOrigins("http://localhost:5271") // Porta padrão do Vite/Blazor
+//             .AllowAnyHeader()
+//             .AllowAnyMethod());
+// });
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5239")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
+// var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy(name: MyAllowSpecificOrigins,
+//         policy =>
+//         {
+//             policy.WithOrigins("http://localhost:5239")
+//                   .AllowAnyHeader()
+//                   .AllowAnyMethod();
+//         });
+// });
 
 
 var app = builder.Build();
@@ -78,11 +88,12 @@ var app = builder.Build();
 //         ConvenioImportService.ImportarConvenios(context, usuarioLogado);
 //     }
 // }
-app.UseCors(MyAllowSpecificOrigins);
+// app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.UseCors("AllowBlazor");
+app.UseCors("BlazorCors");
+// app.UseCors("AllowBlazor");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

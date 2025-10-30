@@ -1,3 +1,4 @@
+/* Estilo base para links do menu */
 .navbar-nav .nav-link {
   display: flex;
   align-items: center;
@@ -6,40 +7,66 @@
   font-size: 0.95rem;
   text-decoration: none;
   opacity: 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Cor padrão dos links no tema escuro */
 .navbar-dark .navbar-nav .nav-link {
   color: white;
 }
 
+/* Link ativo com destaque */
 .navbar-dark .navbar-nav .nav-link.active {
   color: white !important;
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 
-/* .navbar-dark .navbar-nav .nav-link:hover {
-  color: #f8f9fa;
-} */
+/* Hover elegante nos links */
+.navbar-dark .navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
 
+/* Ícones do Bootstrap */
 .bi {
-  width: 1rem;
-  height: 1rem;
-  background-size: contain;
-  background-repeat: no-repeat;
-  display: inline-block;
+  font-size: 1rem;
   vertical-align: middle;
+  margin-right: 0.25rem;
 }
 
+/* Cor personalizada para o fundo da navbar */
 .bg-dark {
-  background-color: #3084e4 !important; /* tom mais escuro */
+  background-color: #3084e4 !important;
 }
 
+/* Estilo do dropdown */
 .navbar-nav .dropdown-menu {
   min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Hover nos itens do dropdown */
 .navbar-nav .dropdown-item:hover {
   background-color: #f8f9fa;
   color: #212529;
+}
+
+/* Botão de logout com destaque */
+.dropdown-item.text-danger:hover {
+  background-color: #ffe5e5;
+  color: #c00;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .navbar-nav .nav-link {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-nav .dropdown-menu {
+    font-size: 0.95rem;
+  }
 }

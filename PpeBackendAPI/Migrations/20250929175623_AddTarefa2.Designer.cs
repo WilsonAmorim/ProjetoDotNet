@@ -10,7 +10,7 @@ using PpeBackendAPI.Models;
 
 namespace PpeBackendAPI.Migrations
 {
-    [DbContext(typeof(MeuDbContext))]
+    [DbContext(typeof(PpeDbContext))]
     [Migration("20250929175623_AddTarefa2")]
     partial class AddTarefa2
     {

@@ -1,0 +1,183 @@
+@page "/inconsistencias"
+
+@using PpeFrontend.DTOs
+@using PpeFrontend.Models
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+@inject IHttpClientFactory ClientFactory
+
+@inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JS
+
+
+<h3>🔍 Pesquisa de Inconsistências</h3>
+
+<div class="card p-3 mb-4">
+    <div class="row g-3">
+        <label>Convênio</label>
+        <select class="form-select" @bind="convenioSelecionado">
+            @foreach (var c in convenios)
+            {
+                <option value="@c">@c</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary me-2" @onclick="Pesquisar">Pesquisar</button>
+        <button class="btn btn-secondary" @onclick="Limpar">Limpar</button>
+    </div>
+</div>
+
+@if (resultados.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th><button class="btn btn-secondary me-2" @onclick="ImprimirPdf">Imprimir PDF</button></th>
+            </tr>
+            <tr>
+                <th>Ações</th>
+                <th>Data Conferência</th>
+                <th>Id</th>
+                <th>CPF</th>
+                <th>Matricula</th>
+                <th>Nome</th>
+                <th>Data Admissão</th>
+                <th>Data Demissão</th>
+                <th>Documento</th>
+                <th>Ocorrência</th>
+                <th>Descrição</th>
+                <th>Link Ocorrência</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (ConferenciaRealizadaDTO conferenciaRealizada in resultados)
+            {
+                <tr>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success me-1" @onclick="() => AbrirModal(conferenciaRealizada)">
+                            <i class="bi bi-search"></i></button>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger me-1" @onclick="() => AbrirModal(conferenciaRealizada)"><i
+                                class="bi bi-trash"></i></button>
+                    </td>
+                    <td>@conferenciaRealizada.Id</td>
+                    <td>@conferenciaRealizada.DataAtualizacao.ToString("dd/MM/yyyy")</td>
+                    <td>@conferenciaRealizada.Cpf</td>
+                    <td>@conferenciaRealizada.Matricula</td>
+                    <td>@conferenciaRealizada.Nome</td>
+                    <td>@conferenciaRealizada.DataAdmissao.ToString("dd/MM/yyyy")</td>
+                    <td>@conferenciaRealizada.DataDemissao?.ToString("dd/MM/yyyy")</td>
+                    <td>@conferenciaRealizada.Documento</td>
+                    <td>@conferenciaRealizada.Ocorrencia</td>
+                    <td>@conferenciaRealizada.Descricao</td>
+                    <td>@conferenciaRealizada.LinkOcorrencia</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (pesquisado)
+{
+    <p class="text-muted">Nenhum resultado encontrado.</p>
+}
+
+
+@code {
+
+    int mes = DateTime.Now.Month;
+    int ano = DateTime.Now.Year;
+    string convenioSelecionado = "";
+
+    bool pesquisado = false;
+
+    bool mostrarModal = false;
+
+    string usuario = "wilson.amorim"; // ou pegue do contexto
+
+
+
+    @* protected override async Task OnInitializedAsync()
+    {
+
+    } *@
+
+    List<string> convenios = new() { "Fesfsus Lote 01", "Flem Lote 02", "Flem Lote 03" };
+    List<ConferenciaRealizadaDTO> resultados = new();
+
+    List<ConferenciaRealizadaDTO> conferenciaRealizada = new();
+
+    async Task Pesquisar()
+    {
+        pesquisado = true;
+
+        var query = new ConferenciaFiltroDTO
+        {
+            ConvenioNome = convenioSelecionado
+        };
+
+        var http = ClientFactory.CreateClient("Autenticado");
+
+
+        var response = await http.PostAsJsonAsync("api/Conferencias/pesquisar-conferencia", query);
+
+        Console.WriteLine($"🔽 Enviado: {query.ConvenioNome}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            resultados = await response.Content.ReadFromJsonAsync<List<ConferenciaRealizadaDTO>>() ?? new();
+        }
+
+
+    }
+
+    private async Task ImprimirPdf()
+    {
+        var query = new ConferenciaFiltroDTO
+        {
+            ConvenioNome = convenioSelecionado
+        };
+
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        var response = await http.PostAsJsonAsync("api/Conferencias/relatorio-conferencia", query);
+        Console.WriteLine($"🔽 Enviado: {query.ConvenioNome}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+            await JS.InvokeVoidAsync("downloadFile", "relatorio_conferencia.pdf", "application/pdf", pdfBytes);
+        }
+        else
+        {
+            Console.WriteLine("Erro ao gerar PDF");
+        }
+    }
+
+
+
+    void Limpar()
+    {
+
+        convenioSelecionado = "";
+        resultados.Clear();
+        pesquisado = false;
+    }
+
+
+    private void AbrirModal(ConferenciaRealizadaDTO conferencia)
+    {
+
+        mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+
+    }
+
+
+}
