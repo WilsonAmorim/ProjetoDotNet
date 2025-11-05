@@ -2,8 +2,8 @@
 @using System.ComponentModel.DataAnnotations
 @inject HttpClient Http
 @inject NavigationManager Nav
+<link href="css/login.css" rel="stylesheet" />
 
-<h3>Registro de Usuário</h3>
 
 @if (!string.IsNullOrEmpty(mensagem))
 {
@@ -13,36 +13,38 @@
 <EditForm Model="@usuario" OnValidSubmit="Registrar">
   <DataAnnotationsValidator />
   <ValidationSummary />
+  <div class="login-container">
+    <div class="login-card">
+      <h3>Registro de Usuário</h3>
+      <div class="input-group">
+        <span class="icon">🧑‍💼</span>
+        <InputText @bind-Value="usuario.Nome" class="form-control" placeholder="Nome" />
+        <ValidationMessage For="@(() => usuario.Nome)" />
+      </div>
 
-  <div>
-    <label>Nome:</label>
-    <InputText @bind-Value="usuario.Nome" class="form-control" />
-    <ValidationMessage For="@(() => usuario.Nome)" />
+      <div class="input-group">
+        <span class="icon">📧</span>
+        <InputText @bind-Value="usuario.Email" class="form-control" placeholder="Email" />
+        <ValidationMessage For="@(() => usuario.Email)" />
+      </div>
+
+      <div class="input-group">
+        <span class="icon">🔒</span>
+        <InputText @bind-Value="usuario.Senha" type="password" class="form-control" placeholder="Senha" />
+        <ValidationMessage For="@(() => usuario.Senha)" />
+      </div>
+      <div class="input-group">
+        <span class="icon">👥</span>
+        <InputSelect @bind-Value="usuario.Role" class="form-control" placeholder="Role">
+          <option value="">Selecione</option>
+          <option value="admin">admin</option>
+          <option value="user">usuario</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => usuario.Role)" />
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Registrar</button>
+    </div>
   </div>
-
-  <div>
-    <label>Email:</label>
-    <InputText @bind-Value="usuario.Email" class="form-control" />
-    <ValidationMessage For="@(() => usuario.Email)" />
-  </div>
-
-  <div>
-    <label>Senha:</label>
-    <InputText @bind-Value="usuario.Senha" type="password" class="form-control" />
-    <ValidationMessage For="@(() => usuario.Senha)" />
-  </div>
-
-  <div>
-    <label>Role:</label>
-    <InputSelect @bind-Value="usuario.Role" class="form-control">
-      <option value="">Selecione</option>
-      <option value="admin">admin</option>
-      <option value="user">usuario</option>
-    </InputSelect>
-    <ValidationMessage For="@(() => usuario.Role)" />
-  </div>
-
-  <button type="submit" class="btn btn-primary mt-3">Registrar</button>
 </EditForm>
 
 @code {

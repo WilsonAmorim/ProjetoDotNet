@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using PpeBackendAPI.Services;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 var chave = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Chave JWT não configurada.");
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
@@ -19,8 +21,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
@@ -35,7 +36,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = key // ✅ usa a mesma chave carregada acima
+            IssuerSigningKey = key
         };
     });
 
@@ -49,52 +50,24 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorCors", policy =>
     {
-        policy.WithOrigins("http://localhost:5271", "http://localhost:5239")
+        policy.WithOrigins("http://localhost:5271",
+                            "http://localhost:5239",
+                            "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy("AllowBlazor",
-//         policy => policy
-//             .WithOrigins("http://localhost:5271") // Porta padrão do Vite/Blazor
-//             .AllowAnyHeader()
-//             .AllowAnyMethod());
-// });
 
-// var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy(name: MyAllowSpecificOrigins,
-//         policy =>
-//         {
-//             policy.WithOrigins("http://localhost:5239")
-//                   .AllowAnyHeader()
-//                   .AllowAnyMethod();
-//         });
-// });
 
 
 var app = builder.Build();
-// using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<MeuDbContext>();
-//     if (!context.Convenios.Any())
-//     {
-//         var usuarioLogado = "wilson.amorim";
-//         ConvenioImportService.ImportarConvenios(context, usuarioLogado);
-//     }
-// }
-// app.UseCors(MyAllowSpecificOrigins);
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.UseCors("BlazorCors");
-// app.UseCors("AllowBlazor");
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

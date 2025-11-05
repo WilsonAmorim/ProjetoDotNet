@@ -13,6 +13,9 @@ namespace PpeBackendAPI.Models
         public DbSet<Documentos> Documentos { get; set; }
         public DbSet<Ocorrencias> Ocorrencias { get; set; }
         public DbSet<RegistroOcorrencias> RegistroOcorrencias { get; set; }
+        public DbSet<Repasse> Repasses { get; set; }
+        public DbSet<Estagio> Estagios { get; set; }
+        public DbSet<Investimento> Investimentos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

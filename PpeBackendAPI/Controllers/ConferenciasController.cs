@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using PpeBackendAPI.Models;
-using PpeBackendAPI.Services;
 using PpeBackendAPI.DTOs;
 using iText.Kernel.Pdf;
 using iText.Layout;
@@ -12,7 +10,8 @@ using iText.Layout.Properties;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
 using iText.IO.Image;
-using Microsoft.AspNetCore.Hosting;
+using ClosedXML.Excel; // Namespace principal do ClosedXML
+using System.IO;
 
 
 namespace PpeBackendAPI.Controllers;
@@ -244,20 +243,7 @@ public class ConferenciasController : ControllerBase
         // return Ok(registros);
     }
 
-    // [Authorize(Roles = "usuario")]
-    // [HttpPost("relatorio-conferencia")]
-    // public IActionResult GerarRelatorioConferencia([FromBody] ConferenciaFiltroDTO filtro)
-    // {
-    //     Console.WriteLine($"🔍 Filtro recebido: {filtro?.ConvenioNome}");
 
-    //     if (string.IsNullOrEmpty(filtro?.ConvenioNome))
-    //         return BadRequest("ConvenioNome está vazio ou nulo");
-
-    //     var registros = ConsultarConferencias(filtro);
-    //     var pdfBytes = GerarRelatorioConferencias(registros);
-
-    //     return File(pdfBytes, "application/pdf", "relatorio_conferencia.pdf");
-    // }
 
     private byte[] GerarRelatorioConferencias(List<ConferenciaRealizadaDTO> registros)
     {
@@ -409,40 +395,166 @@ public class ConferenciasController : ControllerBase
         return ms.ToArray();
     }
 
-    private List<ConferenciaRealizadaDTO> ConsultarConferencias(ConferenciaFiltroDTO filtro)
+
+
+    [HttpPost("relatorio-excel")] // Endpoint específico para Excel
+    public IActionResult GerarRelatorioExcel([FromBody] ConferenciaRealizadaDTO filtro)
     {
-        Console.WriteLine($"🔍 Consultando conferências... {filtro.ConvenioNome}");
-        return (from conferencia in _context.Conferencias
-                join convenio in _context.Convenios on conferencia.ConvenioId equals convenio.Id
-                join documentos in _context.Documentos on conferencia.DocumentoId equals documentos.Id
-                join ocorrencias in _context.Ocorrencias on conferencia.OcorrenciaId equals ocorrencias.Id
-                join registroOcorrencias in _context.RegistroOcorrencias on conferencia.RegistroOcorrenciasId equals registroOcorrencias.Id
-                where conferencia.ConvenioNome == filtro.ConvenioNome
-                select new ConferenciaRealizadaDTO
-                {
-                    Id = conferencia.Id,
-                    ConvenioId = conferencia.ConvenioId,
-                    ConvenioNome = convenio.ConvenioNome,
-                    Documento = documentos.Documento,
-                    Ocorrencia = ocorrencias.Ocorrencia,
-                    Descricao = registroOcorrencias.Descricao,
-                    Status = conferencia.Status,
-                    DataRetorno = conferencia.DataRetorno,
-                    LinkOcorrencia = conferencia.LinkOcorrencia,
-                    Usuario = conferencia.Usuario,
-                    DataAtualizacao = conferencia.DataAtualizacao,
-                    Cpf = convenio.Cpf ?? "",
-                    Matricula = convenio.Matricula ?? "",
-                    Nome = convenio.Nome ?? "",
-                    DataAdmissao = convenio.DataAdmissao,
-                    DataDemissao = convenio.DataDemissao,
-                    Situacao = convenio.Situacao ?? "",
-                    Categoria = convenio.Categoria ?? "",
-                    Funcao = convenio.Funcao ?? "",
-                    Sexo = convenio.Sexo ?? ""
-                }).ToList();
+        var registros = (from conferencia in _context.Conferencias
+                         join convenio in _context.Convenios
+                             on conferencia.ConvenioId equals convenio.Id
+                         join documentos in _context.Documentos
+                             on conferencia.DocumentoId equals documentos.Id
+                         join ocorrencias in _context.Ocorrencias
+                             on conferencia.OcorrenciaId equals ocorrencias.Id
+                         join registroOcorrencias in _context.RegistroOcorrencias
+                             on conferencia.RegistroOcorrenciasId equals registroOcorrencias.Id
+                         where conferencia.ConvenioNome == filtro.ConvenioNome
+                         select new ConferenciaRealizadaDTO
+                         {
+                             Id = conferencia.Id,
+                             ConvenioId = conferencia.ConvenioId,
+                             ConvenioNome = convenio.ConvenioNome,
+                             Documento = documentos.Documento,
+                             Ocorrencia = ocorrencias.Ocorrencia,
+                             Descricao = registroOcorrencias.Descricao,
+                             Status = conferencia.Status,
+                             DataRetorno = conferencia.DataRetorno,
+                             LinkOcorrencia = conferencia.LinkOcorrencia,
+                             Usuario = conferencia.Usuario,
+                             DataAtualizacao = conferencia.DataAtualizacao,
+
+                             // Dados do convênio (via join)
+                             Cpf = convenio.Cpf ?? "",
+                             Matricula = convenio.Matricula ?? "",
+                             Nome = convenio.Nome ?? "",
+                             DataAdmissao = convenio.DataAdmissao,
+                             DataDemissao = convenio.DataDemissao,
+                             Situacao = convenio.Situacao ?? "",
+                             Categoria = convenio.Categoria ?? "",
+                             Funcao = convenio.Funcao ?? "",
+                             Sexo = convenio.Sexo ?? ""
+                         }).ToList();
+
+        if (registros == null || !registros.Any())
+        {
+            return NotFound("Nenhum registro encontrado.");
+        }
+
+
+        // Chama o método de geração de Excel
+        byte[] excelBytes = GerarExcelConferencias(registros);
+
+        return File(
+            fileContents: excelBytes,
+            contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDownloadName: $"Relatorio_Conferencias_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+        );
     }
 
 
+    private byte[] GerarExcelConferencias(List<ConferenciaRealizadaDTO> registros)
+    {
+        // 1. Agrupar os registros por CPF
+        var gruposPorCpf = registros
+            .GroupBy(r => r.Cpf)
+            .ToList();
 
+        using (var workbook = new XLWorkbook())
+        {
+            // 2. Adiciona a planilha
+            var worksheet = workbook.Worksheets.Add("Relatório de Inconsistências");
+
+            int row = 1; // Linha inicial
+            int col = 1; // Coluna inicial
+
+            // --- CABEÇALHO GERAL ---
+            worksheet.Cell(row, 1).Value = "Relatório de Inconsistências";
+            worksheet.Range(row, 1, row, 7).Merge().Style.Font.SetBold(true).Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            row++;
+
+            // Convênio
+            worksheet.Cell(row, 1).Value = "CONVÊNIO:";
+            worksheet.Cell(row, 1).Style.Font.SetBold(true);
+            worksheet.Cell(row, 2).Value = registros.FirstOrDefault()?.ConvenioNome ?? "N/A";
+            row++;
+            row++; // Pula uma linha
+
+            // --- DEFINIÇÃO DAS COLUNAS (HEADER) ---
+
+            // Define os títulos e aplica estilo de preenchimento
+            var headerCell = worksheet.Cell(row, col);
+            headerCell.Value = "CPF"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Matrícula"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Nome"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Data Admissão"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Documento"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Ocorrência"; col++;
+            headerCell = worksheet.Cell(row, col); headerCell.Value = "Descrição";
+
+            // Estilo dos Cabeçalhos
+            worksheet.Range(row, 1, row, 7).Style.Font.SetBold(true);
+            worksheet.Range(row, 1, row, 7).Style.Fill.SetBackgroundColor(XLColor.LightGray);
+            row++;
+
+            // --- DADOS ---
+            foreach (var grupo in gruposPorCpf)
+            {
+                var colaborador = grupo.First();
+                int startRow = row;
+
+                // Itera sobre as inconsistências para preencher os dados variáveis (Colunas 5 a 7)
+                foreach (var inconsistencia in grupo)
+                {
+                    col = 5;
+
+                    // Colunas de Inconsistência
+                    worksheet.Cell(row, col++).Value = inconsistencia.Documento ?? "";
+                    worksheet.Cell(row, col++).Value = inconsistencia.Ocorrencia ?? "";
+                    worksheet.Cell(row, col++).Value = inconsistencia.Descricao ?? "";
+
+                    row++;
+                }
+
+                int endRow = row - 1;
+
+                // --- MESCLAGEM (MERGE): Dados do Colaborador (Colunas 1 a 4) ---
+
+                // CPF (Coluna 1)
+                worksheet.Range(startRow, 1, endRow, 1).Merge();
+                worksheet.Cell(startRow, 1).Value = colaborador.Cpf ?? "";
+
+                // Matrícula (Coluna 2)
+                worksheet.Range(startRow, 2, endRow, 2).Merge();
+                worksheet.Cell(startRow, 2).Value = colaborador.Matricula ?? "";
+
+                // Nome (Coluna 3)
+                worksheet.Range(startRow, 3, endRow, 3).Merge();
+                worksheet.Cell(startRow, 3).Value = colaborador.Nome ?? "";
+
+                // Data Admissão (Coluna 4)
+                worksheet.Range(startRow, 4, endRow, 4).Merge();
+                if (colaborador.DataAdmissao.HasValue)
+                {
+                    worksheet.Cell(startRow, 4).Value = colaborador.DataAdmissao.Value;
+                    // Formatação de Data
+                    worksheet.Range(startRow, 4, endRow, 4).Style.DateFormat.Format = "dd/MM/yyyy";
+                }
+                else
+                {
+                    worksheet.Cell(startRow, 4).Value = "-";
+                }
+            }
+
+            // Ajusta a largura das colunas
+            worksheet.Columns(1, 7).AdjustToContents();
+
+            // Salva o workbook em um MemoryStream
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                return stream.ToArray();
+            }
+        }
+    }
 }

@@ -11,7 +11,6 @@ using System.Security.Cryptography;
 
 
 
-
 namespace PpeBackendAPI.Controller
 {
     [ApiController]
@@ -31,7 +30,7 @@ namespace PpeBackendAPI.Controller
         public IActionResult Login([FromBody] LoginDTO dto)
         {
             var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == dto.Login);
-
+            Console.WriteLine($"🔐 Usuário logado: {dto.Login}");
             // ✅ Verificação extra para evitar warnings CS8604
             if (string.IsNullOrEmpty(dto.Senha) || string.IsNullOrEmpty(usuario?.SenhaHash))
                 return Unauthorized("Credenciais inválidas");
@@ -47,6 +46,7 @@ namespace PpeBackendAPI.Controller
 
             _context.Usuarios.Update(usuario);
             _context.SaveChanges();
+
 
             return Ok(new { token, refreshToken });
         }

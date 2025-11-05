@@ -18,7 +18,7 @@ namespace PpeFrontend.Services
         {
             var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
-            if (string.IsNullOrWhiteSpace(token))
+            if (string.IsNullOrWhiteSpace(token) || TokenExpirado(token))
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
             var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
@@ -26,6 +26,7 @@ namespace PpeFrontend.Services
 
             return new AuthenticationState(user);
         }
+
 
         public void NotifyUserAuthentication(string token)
         {
@@ -57,7 +58,7 @@ namespace PpeFrontend.Services
                     {
                         "role" => ClaimTypes.Role,
                         "name" => ClaimTypes.Name,
-                        "unique_name" => ClaimTypes.Name, // 👈 Adiciona esse mapeamento
+                        "unique_name" => ClaimTypes.Name,
                         _ => kvp.Key
                     };
 
@@ -76,6 +77,30 @@ namespace PpeFrontend.Services
             }
 
             return claims;
+        }
+
+        private bool TokenExpirado(string token)
+        {
+            try
+            {
+                var payload = token.Split('.')[1];
+                var jsonBytes = ParseBase64WithoutPadding(payload);
+                var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+
+                if (keyValuePairs != null && keyValuePairs.TryGetValue("exp", out var expValue))
+                {
+                    var exp = Convert.ToInt64(expValue);
+                    var expDate = DateTimeOffset.FromUnixTimeSeconds(exp);
+
+                    return expDate < DateTimeOffset.UtcNow;
+                }
+            }
+            catch
+            {
+                return true; // Se falhar, trata como expirado
+            }
+
+            return false;
         }
 
 

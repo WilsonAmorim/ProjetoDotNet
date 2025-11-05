@@ -26,11 +26,9 @@ builder.Services.AddHttpClient("Autenticado", client =>
 })
 .AddHttpMessageHandler<TokenAuthorizationHandler>();
 
-// // 🌐 HttpClient padrão (sem autenticação, usado por componentes públicos)
-// builder.Services.AddScoped(sp => new HttpClient
-// {
-//     BaseAddress = new Uri("http://localhost:5271/")
-// });
+builder.Services.AddScoped(sp =>
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("Autenticado"));
+
 
 // 🚀 Inicia a aplicação
 await builder.Build().RunAsync();

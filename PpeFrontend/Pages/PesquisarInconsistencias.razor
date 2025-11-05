@@ -28,14 +28,16 @@
         <button class="btn btn-secondary" @onclick="Limpar">Limpar</button>
     </div>
 </div>
+<div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-secondary me-2" @onclick="ImprimirPdf">Imprimir PDF</button>
+    <button class="btn btn-secondary me-2" @onclick="ImprimirExcel">Imprimir EXCEL</button>
+</div>
+
 
 @if (resultados.Any())
 {
     <table class="table table-striped">
         <thead>
-            <tr>
-                <th><button class="btn btn-secondary me-2" @onclick="ImprimirPdf">Imprimir PDF</button></th>
-            </tr>
             <tr>
                 <th>Ações</th>
                 <th>Data Conferência</th>
@@ -153,6 +155,39 @@ else if (pesquisado)
         else
         {
             Console.WriteLine("Erro ao gerar PDF");
+        }
+    }
+
+    private async Task ImprimirExcel()
+    {
+        var query = new ConferenciaFiltroDTO
+        {
+            ConvenioNome = convenioSelecionado
+        };
+
+        var http = ClientFactory.CreateClient("Autenticado");
+
+        // Endpoint: api/Conferencias/relatorio-excel (OK)
+        var response = await http.PostAsJsonAsync("api/Conferencias/relatorio-excel", query);
+        Console.WriteLine($"🔽 Enviado: {query.ConvenioNome}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            // ⚠️ CORREÇÃO: Variável deve ser 'excelBytes' e não 'pdfBytes'
+            var excelBytes = await response.Content.ReadAsByteArrayAsync();
+
+            // ⚠️ CORREÇÃO DE NOME E MIME TYPE
+            await JS.InvokeVoidAsync(
+            "downloadFile",
+            "relatorio_conferencia.xlsx", // MUDANÇA 1: Extensão para XLSX
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // MUDANÇA 2: MIME Type correto para XLSX
+            excelBytes
+            );
+        }
+        else
+        {
+            // ⚠️ Lembre-se de ajustar a mensagem de erro
+            Console.WriteLine("Erro ao gerar relatório Excel");
         }
     }
 

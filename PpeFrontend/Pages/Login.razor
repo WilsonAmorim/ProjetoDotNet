@@ -10,8 +10,17 @@
   <div class="login-card">
     <h2>Login</h2>
 
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+      <div class="alert alert-danger" role="alert">
+        @mensagemErro
+      </div>
+    }
+
+
     <div class="input-group">
-      <span class="icon">📧</span>
+      <span class="icon">🧑‍💼</span>
       <input @bind="login" placeholder="Login" />
     </div>
 
@@ -19,32 +28,100 @@
       <span class="icon">🔒</span>
       <input @bind="senha" placeholder="Senha" type="password" />
     </div>
-
-    <div class="forgot">
-      <a href="#">Esqueceu a senha?</a>
-    </div>
-
-    <button class="login-button" @onclick="FazerLogin">Entrar</button>
-
-
+    <button class="login-button" type="button" @onclick="FazerLogin">Entrar</button>
   </div>
 </div>
 
 @code {
-  string login = "", senha = "";
+  // Login.razor (@code block)
 
+  string login = "", senha = "";
+  string mensagemErro = "testando";
+  protected override void OnInitialized()
+  {
+    // Se a mensagem inicial era apenas para debug, remova-a aqui
+    if (mensagemErro == "testando")
+    {
+      mensagemErro = "";
+    }
+  }
   async Task FazerLogin()
   {
-    var payload = new { login, senha };
-    var response = await Http.PostAsJsonAsync("http://localhost:5271/api/Auth/login", payload);
-    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+    // Limpa a mensagem anterior antes de tudo
+    mensagemErro = "";
 
-    if (result?.Token != null)
+    var payload = new { login, senha };
+    HttpResponseMessage? response = null;
+
+    try
     {
-      await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
-      ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
-      Nav.NavigateTo("/minhas-tarefas", forceLoad: true);
+      // 1. TENTA FAZER A CHAMADA HTTP
+      response = await Http.PostAsJsonAsync("http://localhost:5271/api/Auth/login", payload);
+
+      // ===============================================
+      // FLUXO DE SUCESSO (Status 2xx)
+      // ===============================================
+      if (response.IsSuccessStatusCode)
+      {
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>()!;
+
+        if (result?.Token != null)
+        {
+          // Sucesso completo: Sai do método
+          await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+          ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
+          Nav.NavigateTo("/minhas-tarefas");
+          return;
+        }
+        else
+        {
+          mensagemErro = "Erro interno: Token de autenticação não retornado.";
+          Console.WriteLine($"Mensagem - 1: {mensagemErro}");
+        }
+      }
+      // ===============================================
+      // FLUXO DE FALHA DE CREDENCIAIS (Status 4xx que não lançaram exceção)
+      // ===============================================
+      else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+      {
+        mensagemErro = "Login ou senha inválidos. Tente novamente.";
+        Console.WriteLine($"Mensagem - 2: {mensagemErro}");
+      }
+      else
+      {
+        // Outros erros (ex: 400 Bad Request)
+        mensagemErro = $"Erro de servidor: Status {response.StatusCode}.";
+        Console.WriteLine($"Mensagem - 3: {mensagemErro}");
+      }
     }
+    catch (HttpRequestException ex)
+    {
+      // ===============================================
+      // FLUXO DE EXCEÇÃO (Normalmente 401, 404, 500 no Blazor WA)
+      // ===============================================
+      if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+      {
+        // O Blazor capta o 401 do backend e lança a exceção com esse status.
+        mensagemErro = "Login ou senha inválidos. Tente novamente.";
+        Console.WriteLine($"Mensagem - 4 (Exception): {mensagemErro}");
+      }
+      else
+      {
+        // Erro de rede (servidor offline, CORS, etc.)
+        mensagemErro = $"Erro de conexão: Servidor indisponível ou erro de rede. Detalhes: {ex.Message}";
+        Console.WriteLine($"Mensagem - 5 (Network Error): {mensagemErro}");
+      }
+    }
+    catch (Exception ex)
+    {
+      mensagemErro = $"Erro inesperado: {ex.Message}";
+      Console.WriteLine($"Mensagem - 6 (Unexpected): {mensagemErro}");
+    }
+
+
+    // ⭐️ Força a re-renderização APÓS o try-catch
+    await Task.Delay(50);
+    StateHasChanged();
   }
 
 

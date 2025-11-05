@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PpeBackendAPI.Models;
 
@@ -10,9 +11,11 @@ using PpeBackendAPI.Models;
 namespace PpeBackendAPI.Migrations
 {
     [DbContext(typeof(PpeDbContext))]
-    partial class MeuDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251105124103_dashboard1")]
+    partial class dashboard1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.5");
@@ -133,46 +136,6 @@ namespace PpeBackendAPI.Migrations
                     b.ToTable("Documentos");
                 });
 
-            modelBuilder.Entity("PpeBackendAPI.Models.Estagio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("DescricaoEstagio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Periodo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Valor")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Estagios");
-                });
-
-            modelBuilder.Entity("PpeBackendAPI.Models.Investimento", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("DescricaoInvestimento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Periodo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Valor")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Investimentos");
-                });
-
             modelBuilder.Entity("PpeBackendAPI.Models.Ocorrencias", b =>
                 {
                     b.Property<int>("Id")
@@ -202,41 +165,6 @@ namespace PpeBackendAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RegistroOcorrencias");
-                });
-
-            modelBuilder.Entity("PpeBackendAPI.Models.Repasse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DataPagamento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Delay")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NomeLote")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Periodo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Valor")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("ValorInformado")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ValorRepasse")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Repasses");
                 });
 
             modelBuilder.Entity("PpeBackendAPI.Models.Tarefa", b =>

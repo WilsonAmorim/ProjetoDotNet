@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* * Opcional: Definindo a fonte global 'Inter' e um fundo suave
+ * O Tailwind usa uma fonte sans-serif padrão, mas esta é uma 
+ * boa prática se você quiser garantir a consistência.
+ */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-800 font-sans;
+  }
+}
