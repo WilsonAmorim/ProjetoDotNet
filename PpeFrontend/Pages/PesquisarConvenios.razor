@@ -1,9 +1,13 @@
 @page "/conferencia"
 
 @using PpeFrontend.DTOs
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario, gestor")]
 @using PpeFrontend.Models
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 
 
@@ -60,6 +64,7 @@
         <thead>
             <tr>
                 <th>Ações</th>
+                <th>Id</th>
                 <th>CPF</th>
                 <th>Nome</th>
                 <th>Data Admissão</th>
@@ -122,7 +127,7 @@ else if (pesquisado)
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6"><strong>Usuário PPE:</strong> @usuario</div>
-                        <div class="col-md-6"><strong>Convênio:</strong> @conferenciaSelecionada.Nome</div>
+                        <div class="col-md-6"><strong>Convênio:</strong> @convenioSelecionado</div>
                         <div class="col-md-6"><strong>Id Beneficiário:</strong> @conferenciaSelecionada.Id</div>
                         <div class="col-md-6"><strong>Situação:</strong> @conferenciaSelecionada.Situacao</div>
                         <div class="col-md-6"><strong>Categoria:</strong> @conferenciaSelecionada.Categoria</div>
@@ -172,6 +177,10 @@ else if (pesquisado)
                                 }
                             </InputSelect>
                         </div>
+                        <div class="col-md-14">
+                            <label>Link da Ocorrência</label>
+                            <InputText class="form-control" @bind-Value="linkOcorrencia" />
+                        </div>
                     </div>
                     @* fim estruturas modal *@
                 </div>
@@ -196,7 +205,7 @@ else if (pesquisado)
 
     bool mostrarModal = false;
     ConvenioRegistroDTO conferenciaSelecionada = new();
-    string usuario = "wilson.amorim"; // ou pegue do contexto
+    string usuario = ""; // ou pegue do contexto
 
     int registroOcorrenciasId;
     int ocorrenciaId;
@@ -209,7 +218,16 @@ else if (pesquisado)
         await CarregarDocumentos();
         await CarregarRegistroOcorrencias();
 
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            // Se precisar de claims específicas:
+            var role = user.FindFirst(c => c.Type == "role")?.Value;
+            var email = user.FindFirst(c => c.Type == "email")?.Value;
+            var usuario = user.FindFirst(c => c.Type == "login")?.Value;
+        }
     }
 
     List<string> convenios = new() { "Fesfsus Lote 01", "Flem Lote 02", "Flem Lote 03" };
@@ -274,20 +292,6 @@ else if (pesquisado)
         pesquisado = false;
     }
 
-    public class ConvenioRegistroDto
-    {
-
-        public string Cpf { get; set; } = "";
-        public string Matricula { get; set; } = "";
-        public string Nome { get; set; } = "";
-        public DateTime? DataAdmissao { get; set; }
-        public DateTime? DataDemissao { get; set; }
-        public string Sexo { get; set; } = "";
-        public string Situacao { get; set; } = "";
-        public string Categoria { get; set; } = "";
-        public string Funcao { get; set; } = "";
-
-    }
 
 
     List<Documentos> documentosP = new();
@@ -311,14 +315,14 @@ else if (pesquisado)
 
     private async Task RegistrarConferencia()
     {
-        Console.WriteLine("");
+        Console.WriteLine(convenioSelecionado);
         var dto = new ConferenciaDTO
         {
             ConvenioId = conferenciaSelecionada.Id,
             DocumentoId = documentoId,
             OcorrenciaId = ocorrenciaId,
             RegistroOcorrenciasId = registroOcorrenciasId,
-            ConvenioNome = conferenciaSelecionada.Nome,
+            ConvenioNome = convenioSelecionado,
             Status = "Registrado",
             DataRetorno = DateTime.Now,
             LinkOcorrencia = linkOcorrencia,

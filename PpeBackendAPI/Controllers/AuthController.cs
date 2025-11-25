@@ -29,28 +29,36 @@ namespace PpeBackendAPI.Controller
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDTO dto)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == dto.Login);
-            Console.WriteLine($"🔐 Usuário logado: {dto.Login}");
-            // ✅ Verificação extra para evitar warnings CS8604
-            if (string.IsNullOrEmpty(dto.Senha) || string.IsNullOrEmpty(usuario?.SenhaHash))
-                return Unauthorized("Credenciais inválidas");
+            try
+            {
+                var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == dto.Login);
 
-            if (!SenhaHelper.VerificarSenha(dto.Senha, usuario.SenhaHash))
-                return Unauthorized("Credenciais inválidas");
+                if (usuario == null)
+                    return Unauthorized("Usuário não encontrado");
 
-            var token = GerarToken(usuario);
-            var refreshToken = GerarRefreshToken();
+                if (string.IsNullOrEmpty(dto.Senha) || string.IsNullOrEmpty(usuario.SenhaHash))
+                    return Unauthorized("Credenciais inválidas");
 
-            usuario.RefreshToken = refreshToken;
-            usuario.RefreshTokenExpiracao = DateTime.UtcNow.AddDays(7);
+                if (!SenhaHelper.VerificarSenha(dto.Senha, usuario.SenhaHash))
+                    return Unauthorized("Credenciais inválidas");
 
-            _context.Usuarios.Update(usuario);
-            _context.SaveChanges();
+                var token = GerarToken(usuario);
+                var refreshToken = GerarRefreshToken();
 
+                usuario.RefreshToken = refreshToken;
+                usuario.RefreshTokenExpiracao = DateTime.UtcNow.AddDays(7);
 
-            return Ok(new { token, refreshToken });
+                _context.Usuarios.Update(usuario);
+                _context.SaveChanges();
+
+                return Ok(new { token, refreshToken });
+            }
+            catch (Exception ex)
+            {
+                // Mostra o erro real no retorno da API
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
-
 
         [Authorize(Roles = "admin")]
         [HttpGet("admin-area")]
@@ -93,38 +101,52 @@ namespace PpeBackendAPI.Controller
         [HttpGet("perfil")]
         public IActionResult Perfil()
         {
-            var login = User.Identity?.Name;
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == login);
-
-            if (usuario == null)
-                return NotFound("Usuário não encontrado");
-
-            return Ok(new
+            try
             {
-                usuario.Login,
-                usuario.Nome,
-                usuario.Email,
-                usuario.Role,
-                RefreshExpiraEm = usuario.RefreshTokenExpiracao.ToString("dd/MM/yyyy HH:mm")
-            });
+                var login = User.Identity?.Name;
+                var usuario = _context.Usuarios.FirstOrDefault(u => u.Login == login);
+
+                if (usuario == null)
+                    return NotFound("Usuário não encontrado");
+
+                return Ok(new
+                {
+                    usuario.Login,
+                    usuario.Nome,
+                    usuario.Email,
+                    usuario.Role,
+                    RefreshExpiraEm = usuario.RefreshTokenExpiracao.ToString("dd/MM/yyyy HH:mm")
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         [Authorize]
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            var email = User.Identity?.Name;
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
+            try
+            {
+                var email = User.Identity?.Name;
+                var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
 
-            if (usuario == null)
-                return NotFound("Usuário não encontrado");
+                if (usuario == null)
+                    return NotFound("Usuário não encontrado");
 
-            usuario.RefreshToken = null;
-            usuario.RefreshTokenExpiracao = DateTime.MinValue;
+                usuario.RefreshToken = null;
+                usuario.RefreshTokenExpiracao = DateTime.MinValue;
 
-            _context.SaveChanges();
+                _context.SaveChanges();
 
-            return Ok("Logout realizado com sucesso");
+                return Ok("Logout realizado com sucesso");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         private string GerarToken(Usuario usuario)

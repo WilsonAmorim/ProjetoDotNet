@@ -56,7 +56,7 @@
     try
     {
       // 1. TENTA FAZER A CHAMADA HTTP
-      response = await Http.PostAsJsonAsync("http://localhost:5271/api/Auth/login", payload);
+      response = await Http.PostAsJsonAsync("api/Auth/login", payload);
 
       // ===============================================
       // FLUXO DE SUCESSO (Status 2xx)
@@ -70,7 +70,7 @@
           // Sucesso completo: Sai do método
           await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
           ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserAuthentication(result.Token);
-          Nav.NavigateTo("/minhas-tarefas");
+          Nav.NavigateTo("/");
           return;
         }
         else

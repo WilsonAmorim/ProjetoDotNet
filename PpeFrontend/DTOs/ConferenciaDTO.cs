@@ -16,6 +16,9 @@ namespace PpeFrontend.DTOs
         public DateTime DataAtualizacao { get; set; }
     }
 
-
+    public class EditarConferenciaDTO
+    {
+        public string Status { get; set; } = "";
+    }
 
 }

@@ -5,15 +5,33 @@ using PpeBackendAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using PpeBackendAPI.Services;
-
-
+// A linha 'using MySql.Data.MySqlClient;' foi removida para resolver o erro CS0246, 
+// pois o provedor EF Core já deve estar configurado corretamente.
 
 var builder = WebApplication.CreateBuilder(args);
 var chave = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Chave JWT não configurada.");
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var env = builder.Environment.EnvironmentName;
+
 builder.Services.AddDbContext<PpeDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (env == "Development")
+    {
+        // Usa SQLite no ambiente de desenvolvimento
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        // Usa MariaDB em produção
+        // O método ServerVersion.AutoDetect requer o using correto do provedor MySql
+        options.UseMySql(
+            connectionString,
+            ServerVersion.AutoDetect(connectionString)
+        );
+    }
+});
 
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -21,10 +39,11 @@ builder.Services.Configure<FormOptions>(options =>
 });
 
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+// Autenticação (Quem é o usuário)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -40,33 +59,46 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Autorização (O que o usuário pode fazer)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("usuario", policy =>
         policy.RequireRole("usuario"));
 });
 
+// CORS (INCLUINDO A ORIGEM DO SEU FRONT-END NO IIS)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorCors", policy =>
     {
-        policy.WithOrigins("http://localhost:5271",
-                            "http://localhost:5239",
-                            "http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+                "http://localhost:5271",
+                "http://localhost:5239",
+                "http://localhost:5173",
+                // *** CORREÇÃO CRUCIAL PARA O IIS: Adicionando o Front-end Blazor ***
+                "http://ppeprojeto.saeb:5001"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
 
-
-
 var app = builder.Build();
 
+// --- CORREÇÃO DA ORDEM DO MIDDLEWARE (NECESSÁRIO PARA USEAUTHORIZATION) ---
+
+// 1. CORS DEVE VIR ANTES de Autenticação/Autorização
+app.UseCors("BlazorCors");
+
+// 2. Autenticação e Autorização
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHttpsRedirection();
+
+// 3. Mapeamento de Controllers (O roteamento)
 app.MapControllers();
-app.UseCors("BlazorCors");
 
 if (app.Environment.IsDevelopment())
 {
@@ -74,27 +106,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// ... o restante do código MapGet e app.Run()...
 
 app.Run();
 

@@ -22,7 +22,7 @@ public class ConveniosController : ControllerBase
     [HttpPost("importar-inicial")]
     public async Task<IActionResult> ImportarInicial(IFormFile arquivo)
     {
-        Console.WriteLine("➡️ Entrou no método ImportarInicial");
+
 
         if (arquivo == null || arquivo.Length == 0)
         {
@@ -81,37 +81,44 @@ public class ConveniosController : ControllerBase
     }
 
     // convenios
-    [Authorize("usuario")]
+    [Authorize(Roles = "usuario, gestor")]
     [HttpGet("convenios")]
     public IActionResult Convenios()
     {
+        try
+        {
 
-        var conveniosListadosRaw = _context.Convenios
-            .ToList();
+            var conveniosListadosRaw = _context.Convenios
+                .ToList();
 
 
-        var conveiosCadastrados = conveniosListadosRaw
-            .Select(t => new ConvenioDTO
-            {
-                Id = t.Id,
-                ConvenioNome = t.ConvenioNome ?? "",
-                Cpf = t.Cpf ?? "",
-                Matricula = t.Matricula ?? "",
-                Nome = t.Nome ?? "",
-                Situacao = t.Situacao ?? "",
-                Categoria = t.Categoria ?? "",
-                DataAdmissao = t.DataAdmissao,
-                DataDemissao = t.DataDemissao,
-                Sexo = t.Sexo,
-                Funcao = t.Funcao ?? "",
-                DataAtualizacao = t.DataAtualizacao,
-                PostoTrabalho = t.PostoTrabalho ?? "",
-                MunicipioLotacao = t.MunicipioLotacao ?? "",
-                Usuario = t.Usuario
-            })
-            .ToList();
+            var conveiosCadastrados = conveniosListadosRaw
+                .Select(t => new ConvenioDTO
+                {
+                    Id = t.Id,
+                    ConvenioNome = t.ConvenioNome ?? "",
+                    Cpf = t.Cpf ?? "",
+                    Matricula = t.Matricula ?? "",
+                    Nome = t.Nome ?? "",
+                    Situacao = t.Situacao ?? "",
+                    Categoria = t.Categoria ?? "",
+                    DataAdmissao = t.DataAdmissao,
+                    DataDemissao = t.DataDemissao,
+                    Sexo = t.Sexo,
+                    Funcao = t.Funcao ?? "",
+                    DataAtualizacao = t.DataAtualizacao,
+                    PostoTrabalho = t.PostoTrabalho ?? "",
+                    MunicipioLotacao = t.MunicipioLotacao ?? "",
+                    Usuario = t.Usuario
+                })
+                .ToList();
 
-        return Ok(new { conveiosCadastrados });
+            return Ok(new { conveiosCadastrados });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
 
     [HttpGet("ping")]
@@ -131,61 +138,69 @@ public class ConveniosController : ControllerBase
         return Ok($"Usuário: {usuario}, Admin: {roleAdmin}");
     }
 
-    [Authorize(Roles = "usuario")]
+    [Authorize(Roles = "usuario, gestor")]
     [HttpPost("pesquisar")]
     public IActionResult PesquisarConvenios([FromBody] PesquisaConvenioDto filtro)
     {
         Console.WriteLine($"🔐 Filtro recebido. Usuário: {filtro.Convenio}");
-        if (filtro.Convenio == "Fesfsus Lote 01")
+        try
         {
-            var registros = _context.Convenios
-           .Where(c =>
-               (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
-               (filtro.Situacao == "" || c.Situacao == filtro.Situacao) &&
-               c.DataAdmissao.HasValue &&
-               c.DataAdmissao.Value.Month == filtro.Mes &&
-               c.DataAdmissao.Value.Year == filtro.Ano)
+            if (filtro.Convenio == "Fesfsus Lote 01")
+            {
+                var registros = _context.Convenios
+            .Where(c =>
+                (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
+                (filtro.Situacao == "" || c.Situacao == filtro.Situacao) &&
+                c.DataAdmissao.HasValue &&
+                c.DataAdmissao.Value.Month == filtro.Mes &&
+                c.DataAdmissao.Value.Year == filtro.Ano)
 
-           .Select(c => new ConvenioRegistroDto
-           {
-               Id = c.Id,
-               Cpf = c.Cpf ?? "",
-               Matricula = c.Matricula ?? "",
-               Nome = c.Nome ?? "",
-               DataAdmissao = c.DataAdmissao,
-               DataDemissao = c.DataDemissao,
-               Sexo = c.Sexo ?? "",
-               Situacao = c.Situacao ?? "",
-               Categoria = c.Categoria ?? "",
-               Funcao = c.Funcao ?? "",
-           })
-           .ToList();
-            return Ok(registros);
+            .Select(c => new ConvenioRegistroDto
+            {
+                Id = c.Id,
+                Cpf = c.Cpf ?? "",
+                Matricula = c.Matricula ?? "",
+                Nome = c.Nome ?? "",
+                DataAdmissao = c.DataAdmissao,
+                DataDemissao = c.DataDemissao,
+                Sexo = c.Sexo ?? "",
+                Situacao = c.Situacao ?? "",
+                Categoria = c.Categoria ?? "",
+                Funcao = c.Funcao ?? "",
+            })
+            .ToList();
+                return Ok(registros);
+            }
+            else
+            {
+                var registros = _context.Convenios
+            .Where(c =>
+                (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
+                (filtro.Categoria == "" || c.Categoria == filtro.Categoria) &&
+                c.DataAdmissao.HasValue &&
+                c.DataAdmissao.Value.Month == filtro.Mes &&
+                c.DataAdmissao.Value.Year == filtro.Ano)
+
+            .Select(c => new ConvenioRegistroDto
+            {
+                Id = c.Id,
+                Cpf = c.Cpf ?? "",
+                Matricula = c.Matricula ?? "",
+                Nome = c.Nome ?? "",
+                DataAdmissao = c.DataAdmissao,
+                DataDemissao = c.DataDemissao,
+                Sexo = c.Sexo ?? "",
+                Situacao = c.Situacao ?? "",
+                Categoria = c.Categoria ?? "",
+                Funcao = c.Funcao ?? "",
+            })
+            .ToList();
+                return Ok(registros);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var registros = _context.Convenios
-           .Where(c =>
-               (filtro.Convenio == "" || c.ConvenioNome == filtro.Convenio) &&
-               (filtro.Categoria == "" || c.Categoria == filtro.Categoria) &&
-               c.DataAdmissao.HasValue &&
-               c.DataAdmissao.Value.Month == filtro.Mes &&
-               c.DataAdmissao.Value.Year == filtro.Ano)
-
-           .Select(c => new ConvenioRegistroDto
-           {
-               Cpf = c.Cpf ?? "",
-               Matricula = c.Matricula ?? "",
-               Nome = c.Nome ?? "",
-               DataAdmissao = c.DataAdmissao,
-               DataDemissao = c.DataDemissao,
-               Sexo = c.Sexo ?? "",
-               Situacao = c.Situacao ?? "",
-               Categoria = c.Categoria ?? "",
-               Funcao = c.Funcao ?? "",
-           })
-           .ToList();
-            return Ok(registros);
+            return StatusCode(500, $"Erro interno: {ex.Message}");
         }
 
 

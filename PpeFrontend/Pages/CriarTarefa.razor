@@ -1,5 +1,7 @@
 @page "/criar-tarefa"
 @inject IHttpClientFactory ClientFactory
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario, gestor")]
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @using System.Net.Http
@@ -65,7 +67,7 @@
 
         try
         {
-            var response = await client.GetAsync("api/Auth/usuarios-ativos");
+            var response = await client.GetAsync("api/Tarefa/usuarios-ativos");
 
             if (response.IsSuccessStatusCode)
             {
@@ -96,7 +98,7 @@
         // Define o status com base no checkbox
         novaTarefa.status = ehPrioritaria ? "Prioritario" : "Nova";
 
-        var response = await client.PostAsJsonAsync("api/Auth/criar", novaTarefa);
+        var response = await client.PostAsJsonAsync("api/Tarefa/criar", novaTarefa);
         if (response.IsSuccessStatusCode)
         {
             mensagem = "Tarefa criada com sucesso!";

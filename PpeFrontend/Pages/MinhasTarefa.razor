@@ -1,6 +1,7 @@
 @page "/minhas-tarefas"
 @inject NavigationManager Nav
-
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario, gestor")]
 @inject IHttpClientFactory ClientFactory
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
@@ -88,6 +89,7 @@ else
     <table class="table table-bordered table-striped">
         <thead class="table-light">
             <tr>
+                <th style="width: 100px;">Ações</th>
                 <th style="width: 1%; white-space: nowrap;">Código</th>
                 <th>Tarefa</th>
                 <th style="width: 1%; white-space: nowrap;">Usuário Destino</th>
@@ -99,6 +101,11 @@ else
             @foreach (var tarefa in tarefasEnviadasPaginadas)
             {
                 <tr>
+                    <td style="padding: 0; width: 1%; white-space: nowrap;">
+                        <button class="btn btn-sm btn-info me-1" @onclick="() => AbrirModal(tarefa)">
+                            Editar
+                        </button>
+                    </td>
                     <td>@tarefa.Id</td>
                     <td>@tarefa.descricao</td>
                     <td style="padding: 0; width: 1%; white-space: nowrap;">@usuarios.FirstOrDefault(u => u.Id ==
@@ -119,6 +126,12 @@ else
 {
     <p>Nenhuma tarefa enviada com esse filtro.</p>
 }
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-outline-primary" @onclick="PaginaAnterior" disabled="@((paginaAtual == 1))">Anterior</button>
+    <span>Página @paginaAtual de @TotalPaginasEnviadas</span>
+    <button class="btn btn-outline-primary" @onclick="ProximaPagina"
+        disabled="@((paginaAtual == TotalPaginasEnviadas))">Próxima</button>
+</div>
 
 @if (tarefaEditando != null)
 {
@@ -159,9 +172,10 @@ else
                         <p class="text-muted">Nenhum anexo ainda.</p>
                     }
                 </div>
-                <label>Anexar arquivo:</label>
-                <InputFile OnChange="HandleFileUpload" class="form-control mb-3" />
-
+                <div class="modal-body">
+                    <label class="modal-title">Anexar arquivo:</label>
+                    <InputFile OnChange="HandleFileUpload" class="form-control mb-2" />
+                </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
                     <button class="btn btn-primary" @onclick="SalvarEdicao">Salvar</button>
@@ -171,6 +185,57 @@ else
     </div>
 }
 
+@if (tarefaEditandoEnviadas != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Tarefa</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>Status:</label>
+                    <InputSelect class="form-select mb-3" @bind-Value="novoStatus">
+                        @foreach (var status in statusDisponiveis)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+
+                    <label>Observação:</label>
+                    <InputTextArea class="form-control" @bind-Value="novaObservacao" />
+                    @if (anexos.Any())
+                    {
+                        <label>Arquivos anexados:</label>
+                        <ul class="lista-anexos mb-3">
+                            @foreach (var nome in anexos)
+                            {
+                                <li>
+                                    <span>@nome</span>
+                                    <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => Baixar(nome)">📥</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Excluir(nome)">🗑️</button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum anexo ainda.</p>
+                    }
+                </div>
+                <div class="modal-body">
+                    <label class="modal-title">Anexar arquivo:</label>
+                    <InputFile OnChange="HandleFileUpload" class="form-control mb-2" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                    <button class="btn btn-primary" @onclick="SalvarEdicao">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 @if (tarefaVisualizandoObservacoes != null)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -200,6 +265,7 @@ else
     private int itensPorPagina = 5;
 
     private TarefaDTO? tarefaEditando;
+    private TarefaDTO? tarefaEditandoEnviadas;
     private string novoStatus = "";
     private string novaObservacao = "";
 

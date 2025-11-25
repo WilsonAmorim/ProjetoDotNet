@@ -1,5 +1,8 @@
 @page "/trocar-senha"
 @using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario,admin")]
+@inject IHttpClientFactory ClientFactory
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Nav
@@ -58,7 +61,7 @@
       novaSenha
     };
 
-    var response = await Http.PostAsJsonAsync("http://localhost:5271/api/Usuarios/trocar-senha", payload);
+    var response = await Http.PostAsJsonAsync("api/Usuarios/trocar-senha", payload);
 
     if (response.IsSuccessStatusCode)
     {

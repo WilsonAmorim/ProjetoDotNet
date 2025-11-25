@@ -18,11 +18,12 @@ builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStatePr
 
 // 🛡️ Handler para adicionar o token JWT nas requisições
 builder.Services.AddScoped<TokenAuthorizationHandler>();
-
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+                 ?? throw new InvalidOperationException("ApiBaseUrl não configurada");
 // 🌐 HttpClient com autenticação (usado para chamadas protegidas)
 builder.Services.AddHttpClient("Autenticado", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5271/");
+    client.BaseAddress = new Uri(apiBaseUrl);
 })
 .AddHttpMessageHandler<TokenAuthorizationHandler>();
 

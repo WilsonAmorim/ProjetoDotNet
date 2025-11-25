@@ -1,5 +1,9 @@
 @page "/registro"
+@using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "admin")]
+@inject IHttpClientFactory ClientFactory
 @inject HttpClient Http
 @inject NavigationManager Nav
 <link href="css/login.css" rel="stylesheet" />
@@ -12,16 +16,22 @@
 
 <EditForm Model="@usuario" OnValidSubmit="Registrar">
   <DataAnnotationsValidator />
-  <ValidationSummary />
+
   <div class="login-container">
     <div class="login-card">
       <h3>Registro de Usuário</h3>
+      <ValidationSummary />
+
+      <div class="input-group">
+        <span class="icon">🧑‍💼</span>
+        <InputText @bind-Value="usuario.Login" class="form-control" placeholder="Login" />
+        <ValidationMessage For="@(() => usuario.Login)" />
+      </div>
       <div class="input-group">
         <span class="icon">🧑‍💼</span>
         <InputText @bind-Value="usuario.Nome" class="form-control" placeholder="Nome" />
         <ValidationMessage For="@(() => usuario.Nome)" />
       </div>
-
       <div class="input-group">
         <span class="icon">📧</span>
         <InputText @bind-Value="usuario.Email" class="form-control" placeholder="Email" />
@@ -35,10 +45,10 @@
       </div>
       <div class="input-group">
         <span class="icon">👥</span>
-        <InputSelect @bind-Value="usuario.Role" class="form-control" placeholder="Role">
+        <InputSelect @bind-Value="usuario.Role" class="form-control">
           <option value="">Selecione</option>
           <option value="admin">admin</option>
-          <option value="user">usuario</option>
+          <option value="usuario">usuario</option>
         </InputSelect>
         <ValidationMessage For="@(() => usuario.Role)" />
       </div>
@@ -53,6 +63,8 @@
 
   async Task Registrar()
   {
+
+    var http = ClientFactory.CreateClient("Autenticado");
     var response = await Http.PostAsJsonAsync("api/Usuarios/registrar", usuario);
 
     if (response.IsSuccessStatusCode)
@@ -71,6 +83,9 @@
   {
     [Required(ErrorMessage = "Nome é obrigatório")]
     public string Nome { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Login é obrigatório")]
+    public string Login { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email é obrigatório")]
     [EmailAddress(ErrorMessage = "Email inválido")]

@@ -1,4 +1,9 @@
 @page "/inconsistencias"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario,gestor")]
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 @using PpeFrontend.DTOs
 @using PpeFrontend.Models
@@ -7,7 +12,7 @@
 
 @inject IHttpClientFactory ClientFactory
 
-@inject IHttpClientFactory ClientFactory
+
 @inject IJSRuntime JS
 
 
@@ -40,8 +45,9 @@
         <thead>
             <tr>
                 <th>Ações</th>
-                <th>Data Conferência</th>
+                <th></th>
                 <th>Id</th>
+                <th>Data Conferência</th>
                 <th>CPF</th>
                 <th>Matricula</th>
                 <th>Nome</th>
@@ -57,10 +63,6 @@
             @foreach (ConferenciaRealizadaDTO conferenciaRealizada in resultados)
             {
                 <tr>
-                    <td>
-                        <button class="btn btn-sm btn-outline-success me-1" @onclick="() => AbrirModal(conferenciaRealizada)">
-                            <i class="bi bi-search"></i></button>
-                    </td>
                     <td>
                         <button class="btn btn-sm btn-outline-danger me-1" @onclick="() => AbrirModal(conferenciaRealizada)"><i
                                 class="bi bi-trash"></i></button>
@@ -86,21 +88,61 @@ else if (pesquisado)
     <p class="text-muted">Nenhum resultado encontrado.</p>
 }
 
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Tarefa</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>Status:</label>
+                    <InputSelect class="form-select mb-3" @bind-Value="novoStatus">
+                        @foreach (var status in statusDisponiveis)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+
+
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                        <button class="btn btn-primary" @onclick="SalvarEdicao">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            var usuario = user.Identity.Name; // Nome do usuário logado
+                                              // Se precisar de claims específicas:
+            var role = user.FindFirst(c => c.Type == "role")?.Value;
+            var email = user.FindFirst(c => c.Type == "email")?.Value;
+        }
+    }
     int mes = DateTime.Now.Month;
     int ano = DateTime.Now.Year;
     string convenioSelecionado = "";
-
+    string novoStatus = "";
     bool pesquisado = false;
 
     bool mostrarModal = false;
 
-    string usuario = "wilson.amorim"; // ou pegue do contexto
-
-
-
+    List<string> statusDisponiveis = new() { "Registrado", "Cancelado", "Enviado" };
+    ConferenciaDTO conferenciaSelecionada = new();
     @* protected override async Task OnInitializedAsync()
     {
 
@@ -191,7 +233,33 @@ else if (pesquisado)
         }
     }
 
+    private async Task SalvarEdicao()
+    {
+        if (conferenciaSelecionada == null) return;
 
+        var query = new EditarConferenciaDTO
+        {
+            Status = novoStatus,
+        };
+        try
+        {
+            var http = ClientFactory.CreateClient("Autenticado");
+            var response = await http.PostAsJsonAsync("api/Convenios/editar/{conferenciaSelecionada.Id}", query);
+            if (response.IsSuccessStatusCode)
+            {
+
+                FecharModal();
+            }
+            else
+            {
+                Console.WriteLine("Erro ao salvar edição: " + response.ReasonPhrase);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro na requisição de edição: " + ex.Message);
+        }
+    }
 
     void Limpar()
     {

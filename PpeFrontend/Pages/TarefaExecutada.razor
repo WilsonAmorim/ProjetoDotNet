@@ -1,0 +1,467 @@
+@page "/tarefas-executadas"
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "admin, gestor")]
+@inject IHttpClientFactory ClientFactory
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+
+
+<!-- 📋 Tabela de tarefas enviadas -->
+<h4 class="mt-4">Enviadas</h4>
+@if (tarefasEnviadasFiltradas.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 100px;">Ações</th>
+                <th style="width: 1%; white-space: nowrap;">Código</th>
+                <th>Tarefa</th>
+                <th style="width: 1%; white-space: nowrap;">Usuário Destino</th>
+                <th>Observação</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tarefa in tarefasEnviadasPaginadas)
+            {
+                <tr>
+                    <td style="padding: 0; width: 1%; white-space: nowrap;">
+                        <button class="btn btn-sm btn-info me-1" @onclick="() => AbrirModal(tarefa)">
+                            Editar
+                        </button>
+                    </td>
+                    <td>@tarefa.Id</td>
+                    <td>@tarefa.descricao</td>
+                    <td>@usuarios.FirstOrDefault(u => u.Id ==
+                                        tarefa.usuarioDestino)?.Nome </td>
+
+            <td style="padding: 0; width: 1%; white-space: nowrap;">
+                <button class="btn btn-sm btn-info" @onclick="() => AbrirModalObservacoes(tarefa)">👁
+                    Visualizar</button>
+            </td>
+            <td style="width: 1%; white-space: nowrap;">@tarefa.status</td>
+        </tr>
+                }
+        </tbody>
+
+    </table>
+}
+else
+{
+    <p>Nenhuma tarefa enviada com esse filtro.</p>
+}
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-outline-primary" @onclick="PaginaAnterior" disabled="@((paginaAtual == 1))">Anterior</button>
+    <span>Página @paginaAtual de @TotalPaginasEnviadas</span>
+    <button class="btn btn-outline-primary" @onclick="ProximaPagina"
+        disabled="@((paginaAtual == TotalPaginasEnviadas))">Próxima</button>
+</div>
+
+@if (tarefaEditandoEnviadas != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Tarefa</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>Status:</label>
+                    <InputSelect class="form-select mb-3" @bind-Value="novoStatus">
+                        @foreach (var status in statusDisponiveis)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+
+                    <label>Observação:</label>
+                    <InputTextArea class="form-control" @bind-Value="novaObservacao" />
+                    @if (anexos.Any())
+                    {
+                        <label>Arquivos anexados:</label>
+                        <ul class="lista-anexos mb-3">
+                            @foreach (var nome in anexos)
+                            {
+                                <li>
+                                    <span>@nome</span>
+                                    <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => Baixar(nome)">📥</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Excluir(nome)">🗑️</button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhum anexo ainda.</p>
+                    }
+                </div>
+                <div class="modal-body">
+                    <label class="modal-title">Anexar arquivo:</label>
+                    <InputFile OnChange="HandleFileUpload" class="form-control mb-2" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                    <button class="btn btn-primary" @onclick="SalvarEdicao">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@if (tarefaVisualizandoObservacoes != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Observações da Tarefa</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModalObservacoes"></button>
+                </div>
+                <div class="modal-body">
+                    <pre>@tarefaVisualizandoObservacoes.observacao</pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="FecharModalObservacoes">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    private string filtroStatus = "";
+    private string filtroDescricao = "";
+    private int paginaAtual = 1;
+    private int itensPorPagina = 5;
+
+    private TarefaDTO? tarefaEditandoEnviadas;
+    private string novoStatus = "";
+    private string novaObservacao = "";
+
+    private int TotalPaginasEnviadas => (int)Math.Ceiling((double)tarefasEnviadasFiltradas.Count / itensPorPagina);
+
+    private List<string> statusDisponiveis = new() { "Nova", "Prioritario", "Duvidas", "EmAndamento", "Pendente",
+"Concluido" };
+
+    private List<TarefaDTO> tarefasEnviadas = new();
+    private List<UsuarioDTO> usuarios = new();
+    private List<TarefaDTO> tarefasEnviadasFiltradas => tarefasEnviadas
+    .Where(t =>
+    (string.IsNullOrEmpty(filtroStatus) ? t.status == "Concluido" : t.status == filtroStatus) &&
+    (string.IsNullOrEmpty(filtroDescricao) || t.descricao.Contains(filtroDescricao, StringComparison.OrdinalIgnoreCase))
+    )
+    .ToList();
+
+    private List<TarefaDTO> tarefasEnviadasPaginadas => tarefasEnviadasFiltradas
+    .Skip((paginaAtual - 1) * itensPorPagina)
+    .Take(itensPorPagina)
+    .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarUsuarios();
+        await CarregarTarefas();
+    }
+
+    private async Task CarregarUsuarios()
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        try
+        {
+            var response = await client.GetAsync("api/Tarefa/usuarios-ativos");
+
+            if (response.IsSuccessStatusCode)
+            {
+                usuarios = await response.Content.ReadFromJsonAsync<List<UsuarioDTO>>() ?? new();
+            }
+            else
+            {
+                Console.WriteLine($"Erro ao carregar usuários: {response.StatusCode}");
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    Nav.NavigateTo("/login");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro inesperado ao carregar usuários: " + ex.Message);
+        }
+    }
+
+
+    private async Task CarregarTarefas()
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        try
+        {
+            var resultado = await client.GetFromJsonAsync<TarefasResponse>("api/Tarefa/tarefas-executadas");
+
+            tarefasEnviadas = resultado?.enviadas ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar tarefas: " + ex.Message);
+            tarefasEnviadas = new();
+        }
+    }
+
+    private async Task FiltrarTarefas()
+    {
+        await CarregarTarefas();
+    }
+
+    private async Task ConcluirTarefa(int id)
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+        await client.PutAsJsonAsync($"api/Tarefa/concluir/{id}", new { });
+        await CarregarTarefas();
+    }
+
+    private async Task MarcarPrioritario(int id)
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+        await client.PutAsJsonAsync($"api/Tarefa/priorizar/{id}", new { });
+        await CarregarTarefas();
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaAtual > 1)
+            paginaAtual--;
+    }
+
+    private void ProximaPagina()
+    {
+        if (paginaAtual < TotalPaginasEnviadas)
+            paginaAtual++;
+    }
+
+    private void AbrirModal(TarefaDTO tarefa)
+    {
+        tarefaEditandoEnviadas = tarefa;
+        novoStatus = tarefa.status;
+        novaObservacao = "";
+
+        // Limpa a lista anterior (importante para evitar piscar)
+        anexos = new List<string>();
+
+        // Chama o carregamento dos anexos
+        // Como é uma operação async, garantimos que ela seja iniciada.
+        // O await aqui é crucial para garantir que a lista 'anexos' seja populada
+        // antes de o Blazor seguir em frente e chamar StateHasChanged.
+        Task.Run(async () =>
+        {
+            await CarregarAnexos();
+            // Garante que a UI (o modal) seja atualizada com os novos dados
+            StateHasChanged();
+        });
+    }
+
+    private void FecharModal()
+    {
+        tarefaEditandoEnviadas = null;
+        novoStatus = "";
+        novaObservacao = "";
+    }
+
+    private async Task SalvarEdicao()
+    {
+        if (tarefaEditandoEnviadas == null) return;
+
+        // A Lógica: O frontend deve enviar APENAS o novo status e a nova observação.
+        // O backend (EditarTarefa) cuida da lógica de:
+        // 1. Verificar se o status mudou.
+        // 2. Anotar a mudança de status e/ou a nova observação.
+        // 3. Concatenar as anotações.
+
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        var payload = new EditarTarefaDTO
+        {
+            // Envia o status selecionado no modal
+            status = novoStatus,
+            // Envia APENAS o texto digitado na nova observação (pode ser "" se nada foi digitado)
+            observacao = novaObservacao
+        };
+
+        try
+        {
+            var response = await client.PutAsJsonAsync($"api/Tarefa/editar/{tarefaEditandoEnviadas.Id}", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                FecharModal();
+                // Recarrega as tarefas para ver as mudanças
+                await CarregarTarefas();
+            }
+            else
+            {
+                // Adicione tratamento de erro aqui
+                Console.WriteLine($"Erro ao editar tarefa: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro na requisição de edição: " + ex.Message);
+        }
+    }
+
+    // Você precisará definir este DTO no frontend também para garantir a tipagem correta
+    public class EditarTarefaDTO
+    {
+        public string? status { get; set; }
+        public string? observacao { get; set; }
+    }
+
+
+    public class TarefaDTO
+    {
+        public int Id { get; set; }
+        public string descricao { get; set; } = "";
+        public string status { get; set; } = "";
+        public string observacao { get; set; } = "";
+        public string usuarioDestino { get; set; } = "";
+        public string usuarioOrigem { get; set; } = "";
+        public string usuarioOrigemNome { get; set; } = "";
+
+    }
+
+    public class TarefasResponse
+    {
+        public List<TarefaDTO> enviadas { get; set; } = new();
+    }
+
+    private TarefaDTO? tarefaVisualizandoObservacoes;
+
+    private void AbrirModalObservacoes(TarefaDTO tarefa)
+    {
+        tarefaVisualizandoObservacoes = tarefa;
+    }
+
+    private void FecharModalObservacoes()
+    {
+        tarefaVisualizandoObservacoes = null;
+    }
+
+    public class UsuarioDTO
+    {
+        public string Id { get; set; } = "";
+        public string Nome { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Senha { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+
+    private string ObterCorBotao(string status) => status switch
+    {
+        "Prioritario" => "btn-danger",
+        "Urgente" => "btn-warning",
+        "Concluido" => "btn-success",
+        "Pendente" => "btn-dark",
+        "Duvidas" => "btn-orange",
+        _ => "btn-primary"
+    };
+
+    private string ObterIconeBotao(string status) => status switch
+    {
+        "Prioritario" => "bi-exclamation-circle",
+        "Urgente" => "bi-lightning",
+        "Concluido" => "bi-check-circle",
+        "Pendente" => "bi-check-circle",
+        "Duvidas" => "bi-check-circle",
+        _ => "bi-pencil"
+    };
+
+    private string ObterTooltipBotao(string status) => status switch
+    {
+        "Prioritario" => "Tarefa prioritária",
+        "Urgente" => "Tarefa urgente",
+        "Concluido" => "Tarefa concluída",
+        "Pendente" => "Tarefa pendente",
+        "Duvidas" => "Tarefa com dúvidas",
+        _ => "Editar tarefa"
+    };
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var arquivo = e.File;
+        var buffer = new byte[arquivo.Size];
+        // Adiciona o ReadAsync
+        await arquivo.OpenReadStream(maxAllowedSize: 10_000_000).ReadAsync(buffer);
+
+        var content = new MultipartFormDataContent();
+        // Chave: "arquivo" (DEVE coincidir com o nome do parâmetro no backend)
+        content.Add(new ByteArrayContent(buffer), "arquivo", arquivo.Name);
+
+        var tarefaId = tarefaEditandoEnviadas?.Id; // Deve ser int, conforme sua DTO
+
+        if (tarefaId == null)
+            return;
+
+        // Garanta que o endpoint esteja correto:
+        var response = await Http.PostAsync($"api/Tarefa/tarefas/{tarefaId}/anexos", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // NOVO: Recarrega a lista para incluir o arquivo recém-adicionado
+            await CarregarAnexos();
+            // Força a renderização do modal para mostrar a lista atualizada
+            StateHasChanged();
+        }
+        else
+        {
+            // Tratar erro
+        }
+    }
+
+    private List<string> anexos = new();
+
+    //protected override async Task OnParametersSetAsync()
+    //{
+    // if (tarefaEditando?.Id != null)
+    // await CarregarAnexos();
+    //}
+    private async Task CarregarAnexos()
+    {
+        var tarefaId = tarefaEditandoEnviadas?.Id;
+        if (tarefaId == null) return;
+
+        // A chamada GetFromJsonAsync é crucialmente assíncrona.
+        // Ela busca os nomes dos arquivos do seu endpoint [HttpGet("tarefas/{id}/anexos")]
+        anexos = await Http.GetFromJsonAsync<List<string>>($"api/Tarefa/tarefas/{tarefaId}/anexos") ?? new();
+
+        // NOTA: Removemos o StateHasChanged daqui, pois ele será chamado no AbrirModal
+        // após a Task ser concluída, otimizando o número de renderizações.
+    }
+
+    private void Baixar(string nome)
+    {
+        var tarefaId = tarefaEditandoEnviadas?.Id;
+        var url = $"api/Tarefa/tarefas/{tarefaId}/anexos/{nome}";
+        NavigationManager.NavigateTo(url, true);
+    }
+
+    private async Task Excluir(string nome)
+    {
+        var tarefaId = tarefaEditandoEnviadas?.Id;
+        var response = await Http.DeleteAsync($"api/Tarefa/tarefas/{tarefaId}/anexos/{nome}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            anexos.Remove(nome);
+            StateHasChanged();
+        }
+    }
+
+
+
+
+}

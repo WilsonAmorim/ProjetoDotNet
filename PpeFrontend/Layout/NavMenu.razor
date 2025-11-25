@@ -22,7 +22,7 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <AuthorizeView Roles="usuario">
+        <AuthorizeView Roles="usuario, gestor">
           <li class="nav-item">
             <NavLink class="nav-link" href="http://10.27.10.117:3000/" target="_blank" rel="noopener noreferrer">
               <i class="bi bi-easel2-fill me-2"></i> Dashboard
@@ -73,10 +73,15 @@
           </li>
         </AuthorizeView>
 
-        <AuthorizeView Roles="admin">
+        <AuthorizeView Roles="admin, gestor">
           <li class="nav-item">
             <NavLink class="nav-link" href="/">
               <i class="bi bi-house-door-fill me-2"></i> Tela Principal
+            </NavLink>
+          </li>
+          <li class="nav-item">
+            <NavLink class="nav-link" href="/tarefas-executadas">
+              <i class="bi bi-house-door-fill me-2"></i> Tarefas executadas
             </NavLink>
           </li>
           <li class="nav-item dropdown">

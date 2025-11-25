@@ -40,7 +40,7 @@ else
 
       try
       {
-        perfil = await Http.GetFromJsonAsync<PerfilResponse>("http://localhost:5271/api/Auth/perfil");
+        perfil = await Http.GetFromJsonAsync<PerfilResponse>("api/Auth/perfil");
       }
       catch (HttpRequestException ex)
       {
@@ -57,7 +57,7 @@ else
     Http.DefaultRequestHeaders.Authorization =
     new AuthenticationHeaderValue("Bearer", token);
 
-    await Http.PostAsync("http://localhost:5271/api/Auth/logout", null);
+    await Http.PostAsync("api/Auth/logout", null);
     await JS.InvokeVoidAsync("localStorage.removeItem", "token");
 
     ((JwtAuthenticationStateProvider)AuthProvider).NotifyUserLogout();

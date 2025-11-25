@@ -22,6 +22,30 @@ namespace PpeBackendAPI.Models
             modelBuilder.Entity<Tarefa>()
                 .Property(t => t.status)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<Tarefa>()
+                .Property(t => t.dataCriacao)
+                .HasColumnType("datetime(6)");
+
+
+            modelBuilder.Entity<Tarefa>()
+                .Property(t => t.dataExecucao)
+                .HasColumnType("datetime(6)");
+
+            modelBuilder.Entity<Usuario>()
+                .Property(t => t.RefreshTokenExpiracao)
+                .HasColumnType("datetime(6)");
+
+            modelBuilder.Entity<Conferencias>().Property(t => t.DataRetorno).HasColumnType("datetime(6)");
+            modelBuilder.Entity<Conferencias>().Property(t => t.DataAtualizacao).HasColumnType("datetime(6)");
+
+            modelBuilder.Entity<Convenio>().Property(t => t.DataAdmissao).HasColumnType("datetime(6)");
+            modelBuilder.Entity<Convenio>().Property(t => t.DataDemissao).HasColumnType("datetime(6)");
+            modelBuilder.Entity<Convenio>().Property(t => t.DataAtualizacao).HasColumnType("datetime(6)");
+
+            modelBuilder.Entity<Repasse>().Property(t => t.DataPagamento).HasColumnType("datetime(6)");
+
+
         }
 
 

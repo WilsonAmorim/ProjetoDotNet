@@ -78,7 +78,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   refreshAccessToken: (currentRefreshToken: string) => Promise<RefreshResult>;
-  setUser: (profile: UserProfileData | null) => void; // ✅ NOVO: Setter para o perfil no contexto
+  setUser: (profile: UserProfileData | null) => void; 
 }
 
 // ---------------------------------------------------------------------
@@ -423,7 +423,6 @@ const LoginScreen: React.FC = () => {
                         placeholder="Senha"
                     />
                 </div>
-                
                 {message && (
                     <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
                         {message}

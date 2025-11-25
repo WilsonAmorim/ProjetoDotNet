@@ -30,10 +30,10 @@ namespace PpeBackendAPI.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataAtualizacao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("DataRetorno")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("DocumentoId")
                         .HasColumnType("INTEGER");
@@ -82,13 +82,13 @@ namespace PpeBackendAPI.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DataAdmissao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("DataAtualizacao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("DataDemissao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Funcao")
                         .HasColumnType("TEXT");
@@ -211,7 +211,7 @@ namespace PpeBackendAPI.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DataPagamento")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Delay")
                         .HasColumnType("TEXT");
@@ -246,10 +246,10 @@ namespace PpeBackendAPI.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("dataCriacao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("dataExecucao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("descricao")
                         .HasColumnType("TEXT");
@@ -293,7 +293,7 @@ namespace PpeBackendAPI.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("RefreshTokenExpiracao")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Role")
                         .IsRequired()
