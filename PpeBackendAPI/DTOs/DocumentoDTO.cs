@@ -6,4 +6,9 @@ namespace PpeBackendAPI.DTOs
         public int Id { get; set; }
         public string? Documento { get; set; }
     }
+
+    public class NovoDocumentosDTO
+    {
+        public string? Documento { get; set; }
+    }
 }

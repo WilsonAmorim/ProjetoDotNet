@@ -184,6 +184,33 @@ public class ConferenciasController : ControllerBase
                 LinkOcorrencia = dto.LinkOcorrencia,
                 Usuario = usuarioId,
                 DataAtualizacao = DateTime.UtcNow,
+                TarefaId = dto.TarefaId
+            };
+            _context.Conferencias.Add(conferencias);
+            _context.SaveChanges();
+
+            return Ok("Registro de conferencia criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpPost("semregistrar")]
+    public IActionResult CriarSemConferencia([FromBody] SemConferenciaDTO dto)
+    {
+        var usuarioId = User.FindFirst("id")?.Value;
+        try
+        {
+            var conferencias = new Conferencias
+            {
+                ConvenioId = dto.ConvenioId,
+                ConvenioNome = dto.ConvenioNome,
+                Status = dto.Status,
+                Usuario = usuarioId,
+                DataAtualizacao = DateTime.UtcNow,
             };
             _context.Conferencias.Add(conferencias);
             _context.SaveChanges();
@@ -653,6 +680,117 @@ public class ConferenciasController : ControllerBase
                 workbook.SaveAs(stream);
                 return stream.ToArray();
             }
+        }
+    }
+
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpPost("novo-registro-ocorrencia")]
+    public IActionResult NovoRegistroOcorrencia([FromBody] NovoRegistroOcorrenciasDTO dto)
+    {
+
+        try
+        {
+            var registroOcorrencias = new RegistroOcorrencias()
+            {
+                Descricao = dto.Descricao,
+            };
+
+            _context.RegistroOcorrencias.Add(registroOcorrencias);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpPost("nova-ocorrencia")]
+    public IActionResult NovaOcorrencia([FromBody] NovaOcorrenciasDTO dto)
+    {
+        Console.WriteLine($"DocumentoId: {dto.DocumentoId}");
+        Console.WriteLine($"Ocorrencia: {dto.Ocorrencia}");
+
+        try
+        {
+            var ocorrencias = new Ocorrencias()
+            {
+                DocumentoId = dto.DocumentoId,
+                Ocorrencia = dto.Ocorrencia,
+            };
+
+            _context.Ocorrencias.Add(ocorrencias);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpPost("novo-documento")]
+    public IActionResult NovoDocumento([FromBody] NovoDocumentosDTO dto)
+    {
+
+        try
+        {
+            var documentos = new Documentos()
+            {
+                Documento = dto.Documento
+            };
+
+            _context.Documentos.Add(documentos);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpPost("pesquisar-tarefas-conferencias")]
+    public IActionResult PesquisaTarefasConferencias([FromBody] ConferenciaTarefasRealizadasDTO filtro)
+    {
+        try
+        {
+            var registros = (from conferencia in _context.Conferencias
+                             join convenio in _context.Convenios
+                                 on conferencia.ConvenioId equals convenio.Id
+                             join documentos in _context.Documentos
+                                 on conferencia.DocumentoId equals documentos.Id
+                             join ocorrencias in _context.Ocorrencias
+                                 on conferencia.OcorrenciaId equals ocorrencias.Id
+                             join registroOcorrencias in _context.RegistroOcorrencias
+                                 on conferencia.RegistroOcorrenciasId equals registroOcorrencias.Id
+                             where conferencia.TarefaId == filtro.TarefaId
+                             select new ConferenciaTarefasRealizadasDTO
+                             {
+                                 Documento = documentos.Documento,
+                                 Ocorrencia = ocorrencias.Ocorrencia,
+                                 Descricao = registroOcorrencias.Descricao,
+
+                                 // Dados do convênio (via join)
+                                 Cpf = convenio.Cpf ?? "",
+                                 Matricula = convenio.Matricula ?? "",
+                                 Nome = convenio.Nome ?? "",
+                                 DataAdmissao = convenio.DataAdmissao ?? DateTime.MinValue,
+                                 DataDemissao = convenio.DataDemissao,
+                                 Funcao = convenio.Funcao ?? ""
+                             }).ToList();
+
+            return Ok(registros);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
         }
     }
 }

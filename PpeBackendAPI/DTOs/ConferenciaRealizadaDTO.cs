@@ -29,10 +29,31 @@ namespace PpeBackendAPI.DTOs
         public DateTime DataAtualizacao { get; set; }
     }
 
+    public class ConferenciaTarefasRealizadasDTO
+    {
+        public int DocumentoId { get; set; }
+        public int OcorrenciaId { get; set; }
+        public int RegistroOcorrenciasId { get; set; }
+        public int ConvenioId { get; set; }
+        public string? Cpf { get; set; }
+        public string? Matricula { get; set; }
+        public string? Nome { get; set; }
+        public DateTime DataAdmissao { get; set; }
+        public DateTime? DataDemissao { get; set; }
+        public string? Documento { get; set; }
+        public string? Descricao { get; set; }
+        public string? Ocorrencia { get; set; }
+        public string? Funcao { get; set; }
+        public int TarefaId { get; set; }
+    }
+
     public class ConferenciaFiltroDTO
     {
         public string? ConvenioNome { get; set; }
     }
 
-
+    public class TarefgaFiltroDTO
+    {
+        public int TarefaId { get; set; }
+    }
 }

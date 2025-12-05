@@ -10,6 +10,7 @@ namespace PpeBackendAPI.Models
         public int OcorrenciaId { get; set; }
         public int RegistroOcorrenciasId { get; set; }
 
+
         // 🔗 Propriedades de navegação
         public Convenio? Convenio { get; set; }
         public Documentos? Documento { get; set; }
@@ -23,5 +24,6 @@ namespace PpeBackendAPI.Models
         public string? LinkOcorrencia { get; set; }
         public string? Usuario { get; set; }
         public DateTime DataAtualizacao { get; set; }
+        public int TarefaId { get; set; }
     }
 }

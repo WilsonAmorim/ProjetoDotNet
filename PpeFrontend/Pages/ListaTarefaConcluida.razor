@@ -1,0 +1,130 @@
+@page "/tarefa-concluida/{id:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "usuario,gestor")]
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+@using PpeFrontend.DTOs
+@using PpeFrontend.Models
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+@inject IHttpClientFactory ClientFactory
+
+
+@inject IJSRuntime JS
+
+<PageTitle>Tarefas Concluida</PageTitle>
+<h3>🔍 Pesquisa de Inconsistências</h3>
+
+
+
+@if (resultados.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+
+
+
+                <th>Matricula</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Curso</th>
+                <th>Data Admissão</th>
+                <th>Data Demissão</th>
+                <th>Inconsistencias</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (ConferenciaTarefasRealizadasDTO tarefasConcluidasFiltradasPaginadas in resultados)
+            {
+                <tr>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Matricula</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Nome</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Cpf</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Funcao</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.DataAdmissao.ToString("dd/MM/yyyy")</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.DataDemissao?.ToString("dd/MM/yyyy")</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Documento</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Ocorrencia</td>
+                    <td>@tarefasConcluidasFiltradasPaginadas.Descricao</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (pesquisado)
+{
+    <p class="text-muted">Nenhum resultado encontrado.</p>
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-outline-primary" @onclick="PaginaAnterior" disabled="@((paginaAtual == 1))">Anterior</button>
+    <span>Página @paginaAtual de @TotalPaginasEnviadas</span>
+    <button class="btn btn-outline-primary" @onclick="ProximaPagina"
+        disabled="@((paginaAtual == TotalPaginasEnviadas))">Próxima</button>
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+    private int TotalPaginasEnviadas => (int)Math.Ceiling((double)resultados.Count / itensPorPagina);
+    protected override async Task OnParametersSetAsync()
+    {
+        pesquisado = true;
+
+        var query = new TarefgaFiltroDTO()
+        {
+            TarefaId = Id
+        };
+
+        var http = ClientFactory.CreateClient("Autenticado");
+
+
+        var response = await http.PostAsJsonAsync("api/Conferencias/pesquisar-tarefas-conferencias", query);
+
+        Console.WriteLine($"🔽 Enviado: {query.TarefaId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            resultados = await response.Content.ReadFromJsonAsync<List<ConferenciaTarefasRealizadasDTO>>() ?? new();
+        }
+    }
+    int mes = DateTime.Now.Month;
+    int ano = DateTime.Now.Year;
+
+    bool pesquisado = false;
+
+    private int paginaAtual = 1;
+
+    private int itensPorPagina = 5;
+
+    List<string> statusDisponiveis = new() { "Registrado", "Cancelado", "Enviado" };
+    ConferenciaDTO conferenciaSelecionada = new();
+
+
+    List<ConferenciaTarefasRealizadasDTO> resultados = new();
+
+    List<ConferenciaRealizadaDTO> conferenciaRealizada = new();
+
+    private List<ConferenciaTarefasRealizadasDTO> tarefasConcluidasFiltradasPaginadas => resultados
+    .Skip((paginaAtual - 1) * itensPorPagina)
+    .Take(itensPorPagina)
+    .ToList();
+
+    private void PaginaAnterior()
+    {
+        if (paginaAtual > 1)
+            paginaAtual--;
+    }
+
+    private void ProximaPagina()
+    {
+        if (paginaAtual < TotalPaginasEnviadas)
+            paginaAtual++;
+    }
+
+}

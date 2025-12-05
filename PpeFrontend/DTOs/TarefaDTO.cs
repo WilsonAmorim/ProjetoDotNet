@@ -26,4 +26,17 @@ namespace PpeFrontend.DTOs
         public string status { get; set; } = "";
         public string observacao { get; set; } = "";
     }
+
+
+    public class TarefaConferenciaDTO
+    {
+        public int Id { get; set; }
+
+
+    }
+
+
+
+
+
 }

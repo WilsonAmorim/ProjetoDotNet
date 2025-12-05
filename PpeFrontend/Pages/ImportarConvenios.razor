@@ -6,7 +6,7 @@
 @code {
     private HttpClient Http => ClientFactory.CreateClient("Autenticado");
 }
-
+<PageTitle>PPE - Importar Convênios</PageTitle>
 <h3>Importar Convênios</h3>
 
 <InputFile OnChange="HandleFileUpload" multiple />
@@ -34,11 +34,13 @@
             mensagem = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
+                mensagem = "";
                 var texto = await response.Content.ReadAsStringAsync();
                 mensagem = $"✅ Importação concluída: {texto}";
             }
             else
             {
+                mensagem = "";
                 var erro = await response.Content.ReadAsStringAsync();
                 mensagem = $"❌ Erro ({response.StatusCode}): {erro}";
             }

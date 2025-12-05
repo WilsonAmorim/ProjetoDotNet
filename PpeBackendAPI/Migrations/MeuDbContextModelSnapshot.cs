@@ -50,6 +50,9 @@ namespace PpeBackendAPI.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("TarefaId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Usuario")
                         .HasColumnType("TEXT");
 

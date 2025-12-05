@@ -9,6 +9,7 @@ namespace PpeFrontend.Models
         public int DocumentoId { get; set; }
         public int OcorrenciaId { get; set; }
         public int RegistroOcorrenciasId { get; set; }
+        public int TarefaId { get; set; }
 
         // 🔗 Propriedades de navegação
         public Convenio? Convenio { get; set; }

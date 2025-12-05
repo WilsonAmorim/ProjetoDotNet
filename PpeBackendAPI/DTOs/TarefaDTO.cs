@@ -26,4 +26,17 @@ namespace PpeBackendAPI.DTOs
         public string status { get; set; } = "";
         public string observacao { get; set; } = "";
     }
+
+    public class SemTarefaDTO
+    {
+        public string descricao { get; set; } = "";
+        public string usuarioDestinoNome { get; set; } = "";
+
+    }
+
+    public class TarefaConferenciaDTO
+    {
+        public int Id { get; set; }
+
+    }
 }

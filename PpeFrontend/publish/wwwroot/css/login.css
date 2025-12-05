@@ -1,0 +1,92 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to bottom right, #b3e5fc, #5396c7);
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+}
+
+.login-card {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 320px;
+  text-align: center;
+}
+
+.login-card h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+}
+
+.input-group .icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+  font-size: 1rem;
+}
+
+.forgot {
+  text-align: right;
+  margin-bottom: 1rem;
+}
+
+.forgot a {
+  font-size: 0.9rem;
+  color: #ff9800;
+  text-decoration: none;
+}
+
+.login-button {
+  background-color: #4591e7;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.signup {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.signup a {
+  color: #ff9800;
+  text-decoration: none;
+}
+
+.validation-box {
+  background-color: #ffe6e6; /* fundo vermelho claro */
+  border: 1px solid #cc0000; /* borda vermelha */
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-top: 5px;
+  color: #cc0000; /* texto vermelho */
+  font-size: 0.9rem;
+}

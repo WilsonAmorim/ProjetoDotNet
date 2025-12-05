@@ -117,6 +117,37 @@ public class TarefaController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "usuario, gestor")]
+    [HttpGet("conferencia-tarefas")]
+    public IActionResult ConferenciaTarefas()
+    {
+        try
+        {
+            var meuId = User.FindFirst("id")?.Value;
+            Console.WriteLine("Meu ID: " + meuId);
+
+            var tarefasRecebidasRaw = _context.Tarefas
+                .Where(t => t.usuarioDestino == meuId && t.status != "Concluido")
+                .ToList();
+
+            Console.WriteLine("Tarefas recebidas: " + tarefasRecebidasRaw.Count());
+
+            var recebidas = tarefasRecebidasRaw
+                .Select(t => new TarefaConferenciaDTO
+                {
+                    Id = t.Id,
+                })
+                .ToList();
+
+            return Ok(recebidas);
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
     [Authorize]
     [HttpPut("concluir/{id}")]
     public IActionResult ConcluirTarefa(int id)
@@ -173,7 +204,7 @@ public class TarefaController : ControllerBase
         try
         {
             var usuarios = _context.Usuarios
-                .Where(u => u.Role == "usuario")
+                .Where(u => u.Role == "usuario" || u.Role == "gestor")
                 .Select(u => new
                 {
                     Id = u.Id.ToString(),
@@ -364,6 +395,51 @@ public class TarefaController : ControllerBase
                 .Where(t => t.usuarioOrigem == meuId)
                 .ToList();
 
+
+            var enviadas = tarefasEnviadasRaw
+                .Select(t => new TarefaDTO
+                {
+                    Id = t.Id,
+                    usuarioDestino = t.usuarioDestino ?? "",
+                    usuarioDestinoNome = _context.Usuarios
+                        .FirstOrDefault(u => u.Id.ToString() == t.usuarioDestino)?.Nome ?? "",
+                    descricao = t.descricao ?? "",
+                    observacao = t.observacao ?? "",
+                    status = t.status ?? "",
+                    dataExecucao = t.dataExecucao
+                })
+                .OrderByDescending(t => t.dataExecucao)
+                .ToList();
+
+
+            return Ok(new { enviadas });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
+    }
+
+    [Authorize(Roles = "admin, gestor")]
+    [HttpGet("sem-tarefas")]
+    public IActionResult SemTarefas()
+    {
+        try
+        {
+            var meuId = User.FindFirst("id")?.Value;
+
+            // Tarefas enviadas pelo usuário
+            var tarefasEnviadasRaw = _context.Tarefas
+                .Where(t => t.status != "Concluido" && t.usuarioOrigem == meuId)
+                .ToList();
+
+
+            var usuariosComRoleUsuario = _context.Usuarios
+                .Where(u => u.Role == "usuario")
+                .ToList();
+
+
+            // Mapeia tarefas existentes
             var enviadas = tarefasEnviadasRaw
                 .Select(t => new TarefaDTO
                 {
@@ -378,8 +454,17 @@ public class TarefaController : ControllerBase
                 })
                 .ToList();
 
+            // Adiciona usuários sem tarefas
+            var usuariosSemTarefas = usuariosComRoleUsuario
+                .Where(u => !enviadas.Any(e => e.usuarioDestino == u.Id.ToString()))
+                .Select(u => new SemTarefaDTO
+                {
+                    usuarioDestinoNome = u.Nome ?? "",
+                    descricao = "Sem Atividade",
+                });
 
-            return Ok(new { enviadas });
+            return Ok(usuariosSemTarefas);
+
         }
         catch (Exception ex)
         {

@@ -22,8 +22,6 @@ public class ConveniosController : ControllerBase
     [HttpPost("importar-inicial")]
     public async Task<IActionResult> ImportarInicial(IFormFile arquivo)
     {
-
-
         if (arquivo == null || arquivo.Length == 0)
         {
             Console.WriteLine("❌ Arquivo nulo ou vazio");
@@ -33,20 +31,16 @@ public class ConveniosController : ControllerBase
         Console.WriteLine($"📄 Arquivo recebido: {arquivo.FileName}, tamanho: {arquivo.Length}");
 
         var usuario = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "desconhecido";
-        Console.WriteLine($"👤 Usuário logado: {usuario}");
-        Console.WriteLine($"🔐 Autenticado: {User.Identity?.IsAuthenticated}");
-        Console.WriteLine($"🎯 Tem role admin: {User.IsInRole("admin")}");
 
         try
         {
             using var stream = arquivo.OpenReadStream();
-            using var reader = new StreamReader(stream);
 
             Console.WriteLine("📥 Chamando ImportarConvenioDoUpload...");
-            await ConvenioImportService.ImportarConvenioDoUpload(_context, reader, arquivo.FileName, usuario);
+            await ConvenioImportService.ImportarConvenioDoUpload(_context, stream, arquivo.FileName, usuario);
             Console.WriteLine("✅ Importação finalizada com sucesso");
 
-            return Ok("Importação concluída");
+            return Ok(arquivo.FileName);
         }
         catch (Exception ex)
         {

@@ -11,7 +11,7 @@
 
 
 
-
+<PageTitle>PPE -Conferências</PageTitle>
 <h3>🔍 Pesquisa de Convênios</h3>
 
 <div class="card p-3 mb-4">
@@ -117,38 +117,57 @@ else if (pesquisado)
 
 @if (mostrarModal)
 {
+
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">📋 Conferência de PPE</h5>
-                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6"><strong>Usuário PPE:</strong> @usuario</div>
-                        <div class="col-md-6"><strong>Convênio:</strong> @convenioSelecionado</div>
-                        <div class="col-md-6"><strong>Id Beneficiário:</strong> @conferenciaSelecionada.Id</div>
-                        <div class="col-md-6"><strong>Situação:</strong> @conferenciaSelecionada.Situacao</div>
-                        <div class="col-md-6"><strong>Categoria:</strong> @conferenciaSelecionada.Categoria</div>
-                        <div class="col-md-6"><strong>CPF:</strong> @conferenciaSelecionada.Cpf</div>
-                        <div class="col-md-6"><strong>Matrícula:</strong> @conferenciaSelecionada.Matricula</div>
-                        <div class="col-md-6"><strong>Nome:</strong> @conferenciaSelecionada.Nome</div>
-                        <div class="col-md-6"><strong>Data Admissão:</strong>
-                            @conferenciaSelecionada.DataAdmissao?.ToString("dd/MM/yyyy")</div>
-                        <div class="col-md-6"><strong>Data Demissão:</strong>
-                            @(conferenciaSelecionada.DataDemissao?.ToString("dd/MM/yyyy") ?? "—")</div>
-                        <div class="col-md-6"><strong>Sexo:</strong>
-                            @(string.IsNullOrWhiteSpace(conferenciaSelecionada.Sexo) ? "" :
-                                                    conferenciaSelecionada.Sexo.Trim().ToUpper().Substring(0, 1))</div>
+        @if (!string.IsNullOrEmpty(mensagem))
+        {
+            <div class="alert alert-warning">
+                @mensagem
+            </div>
+        }
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📋 Conferência de PPE</h5>
+                <button type="button" class="btn-close" @onclick="FecharModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6"><strong>Usuário PPE:</strong> @usuario</div>
+                    <div class="col-md-6"><strong>Tarefa:</strong> @tarefaSelecionado</div>
+                    <div class="col-md-6"><strong>Convênio:</strong> @convenioSelecionado</div>
+                    <div class="col-md-6"><strong>Id Beneficiário:</strong> @conferenciaSelecionada.Id</div>
+                    <div class="col-md-6"><strong>Situação:</strong> @conferenciaSelecionada.Situacao</div>
+                    <div class="col-md-6"><strong>Categoria:</strong> @conferenciaSelecionada.Categoria</div>
+                    <div class="col-md-6"><strong>CPF:</strong> @conferenciaSelecionada.Cpf</div>
+                    <div class="col-md-6"><strong>Matrícula:</strong> @conferenciaSelecionada.Matricula</div>
+                    <div class="col-md-6"><strong>Nome:</strong> @conferenciaSelecionada.Nome</div>
+                    <div class="col-md-6"><strong>Data Admissão:</strong>
+                        @conferenciaSelecionada.DataAdmissao?.ToString("dd/MM/yyyy")</div>
+                    <div class="col-md-6"><strong>Data Demissão:</strong>
+                        @(conferenciaSelecionada.DataDemissao?.ToString("dd/MM/yyyy") ?? "—")</div>
+                    <div class="col-md-6"><strong>Sexo:</strong>
+                        @(string.IsNullOrWhiteSpace(conferenciaSelecionada.Sexo) ? "" :
+                                                conferenciaSelecionada.Sexo.Trim().ToUpper().Substring(0, 1))</div>
                         <div class="col-md-6"><strong>Função:</strong> @conferenciaSelecionada.Funcao</div>
                     </div>
 
                     <hr />
                     @* Inicio estrutura modal *@
                     <div class="row g-3 mt-2">
+                        <div class="col-md-2">
+                            <label>Tarefa</label>
+                            <select class="form-select" @bind="tarefaSelecionado">
+                                @foreach (var tarefa in tarefasRecebida)
+                                {
+                                    <option value="@tarefa.Id">@tarefa.Id</option>
+                                }
+                            </select>
+                        </div>
                         <div class="col-md-4">
-                            <label>Documentos</label>
+                            <label>Documentos</label><button title="Clique para adicionar novo documento"
+                                class="btn btn-sm btn-outline-info " @onclick="() => AbrirNovoDocumentoModal()">+</button>
                             <InputSelect class="form-select" @bind-Value="documentoId" TValue="int">
                                 <option value="">Selecione</option>
                                 @foreach (var doc in documentosP)
@@ -158,7 +177,8 @@ else if (pesquisado)
                             </InputSelect>
                         </div>
                         <div class="col-md-4">
-                            <label>Ocorrência</label>
+                            <label>Ocorrência</label><button title="Clique para adicionar nova ocorrência"
+                                class="btn btn-sm btn-outline-info " @onclick="() => AbrirNovaOcorrenciaModal()">+</button>
                             <InputSelect class="form-select" @bind-Value="ocorrenciaId">
                                 <option value="">Selecione</option>
                                 @foreach (var oc in ocorrencias)
@@ -168,7 +188,11 @@ else if (pesquisado)
                             </InputSelect>
                         </div>
                         <div class="col-md-4">
-                            <label>Registro da Ocorrência</label>
+                            <label>Registro da Ocorrência</label><button
+                                title="Clique para adicionar nova Registro de ocorrência"
+                                class="btn btn-sm btn-outline-info "
+                                @onclick="() => AbrirNovoRegistroOcorrenciaModal()">+</button>
+
                             <InputSelect class="form-select" @bind-Value="registroOcorrenciasId">
                                 <option value="">Selecione</option>
                                 @foreach (var reg in registroOcorrencias)
@@ -191,32 +215,139 @@ else if (pesquisado)
             </div>
         </div>
     </div>
+
 }
+
+
+@if (NovoDocumentoModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 Conferência (Novo Documento) PPE</h5>
+                    <button type="button" class="btn-close" @onclick="FecharNovoDocumentoModal"></button>
+                </div>
+                <div class="modal-body">
+                    @* Inicio estrutura modal *@
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label>Novo Novo Documento</label>
+                            <InputText class="form-control" @bind-Value="newDocumento" />
+                        </div>
+                    </div>
+                    @* fim estruturas modal *@
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="NovoDocumento">Registrar</button>
+                    <button class="btn btn-secondary" @onclick="FecharNovoDocumentoModal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (NovaOcorrenciaModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 Conferência (Nova Ocorrência)</h5>
+                    <button type="button" class="btn-close" @onclick="FecharNovaOcorrenciaModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-4">
+                        <label>Documentos</label>
+                        <InputSelect class="form-select" @bind-Value="documentoId" TValue="int">
+                            <option value="">Selecione</option>
+                            @foreach (var doc in documentosP)
+                            {
+                                <option value="@doc.Id">@doc.Documento</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label>Nova Ocorrência</label>
+                            <InputText class="form-control" @bind-Value="newOcorrencia" />
+                        </div>
+                    </div>
+                    @* fim estruturas modal *@
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="NovaOcorrencia">Registrar</button>
+                    <button class="btn btn-secondary" @onclick="FecharNovaOcorrenciaModal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (NovoRegistroOcorrenciaModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 Conferência (Novo Registro de Ocorrência) PPE</h5>
+                    <button type="button" class="btn-close" @onclick="FecharNovoRegistroOcorrenciaModal"></button>
+                </div>
+                <div class="modal-body">
+                    @* Inicio estrutura modal *@
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label>Novo Registro de Ocorrência</label>
+                            <InputText class="form-control" @bind-Value="newRegistrOcorrencia" />
+                        </div>
+                    </div>
+                    @* fim estruturas modal *@
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="RegistrarNovaOcorrencia">Registrar</button>
+                    <button class="btn btn-secondary" @onclick="FecharNovoRegistroOcorrenciaModal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 
 @code {
 
+    int tarefaSelecionado = 0;
     int mes = DateTime.Now.Month;
     int ano = DateTime.Now.Year;
     string convenioSelecionado = "";
     string situacao = "";
     string categoria = "";
+    private string? mensagem;
 
     bool pesquisado = false;
 
     bool mostrarModal = false;
+    bool NovoRegistroOcorrenciaModal = false;
+    bool NovaOcorrenciaModal = false;
+    bool NovoDocumentoModal = false;
+
     ConvenioRegistroDTO conferenciaSelecionada = new();
     string usuario = ""; // ou pegue do contexto
 
     int registroOcorrenciasId;
     int ocorrenciaId;
+
     string linkOcorrencia = "";
     private int _documentoId;
+    string newOcorrencia = "";
+    string newRegistrOcorrencia = "";
+    string newDocumento = "";
 
 
     protected override async Task OnInitializedAsync()
     {
         await CarregarDocumentos();
         await CarregarRegistroOcorrencias();
+        await CarregarTarefas();
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -236,6 +367,12 @@ else if (pesquisado)
     List<Documentos> documentos = new();
     List<OcorrenciasDTO> ocorrencias = new();
     List<RegistroOcorrenciasDTO> registroOcorrencias = new();
+
+    private string filtroStatus = "";
+    private string filtroDescricao = "";
+    private List<TarefaConferenciaDTO> tarefasRecebida = new();
+
+
 
     async Task Pesquisar()
     {
@@ -272,7 +409,7 @@ else if (pesquisado)
 
         var response = await http.PostAsJsonAsync("api/Convenios/pesquisar", query);
 
-        Console.WriteLine($"🔽 Resultado da query: {query}");
+        Console.WriteLine($"🔽 Resultado da query: {tarefaSelecionado}");
 
 
         if (response.IsSuccessStatusCode)
@@ -298,10 +435,48 @@ else if (pesquisado)
     // se tiver categorias separadas
 
 
+
     private void AbrirModal(ConvenioRegistroDTO conferencia)
     {
         conferenciaSelecionada = conferencia;
         mostrarModal = true;
+    }
+
+    private void AbrirNovoDocumentoModal()
+    {
+        NovoDocumentoModal = true;
+    }
+    private void FecharNovoDocumentoModal()
+    {
+        NovoDocumentoModal = false;
+        newDocumento = "";
+
+    }
+
+    private void AbrirNovaOcorrenciaModal()
+    {
+
+        NovaOcorrenciaModal = true;
+    }
+
+    private void FecharNovaOcorrenciaModal()
+    {
+        NovaOcorrenciaModal = false;
+        newOcorrencia = "";
+
+    }
+
+    private void AbrirNovoRegistroOcorrenciaModal()
+    {
+
+        NovoRegistroOcorrenciaModal = true;
+    }
+
+    private void FecharNovoRegistroOcorrenciaModal()
+    {
+        NovoRegistroOcorrenciaModal = false;
+        newRegistrOcorrencia = "";
+
     }
 
     private void FecharModal()
@@ -316,6 +491,11 @@ else if (pesquisado)
     private async Task RegistrarConferencia()
     {
         Console.WriteLine(convenioSelecionado);
+        if (documentoId == 0 || ocorrenciaId == 0 || registroOcorrenciasId == 0)
+        {
+            mensagem = "Por favor, preencha todos os campos obrigatórios.";
+            return;
+        }
         var dto = new ConferenciaDTO
         {
             ConvenioId = conferenciaSelecionada.Id,
@@ -327,7 +507,8 @@ else if (pesquisado)
             DataRetorno = DateTime.Now,
             LinkOcorrencia = linkOcorrencia,
             Usuario = usuario,
-            DataAtualizacao = DateTime.Now
+            DataAtualizacao = DateTime.Now,
+            TarefaId = tarefaSelecionado
         };
 
         var http = ClientFactory.CreateClient("Autenticado");
@@ -339,6 +520,95 @@ else if (pesquisado)
             // mostrar alerta ou atualizar lista
         }
     }
+
+
+
+    private async Task NovoDocumento()
+    {
+        Console.WriteLine(documentoId);
+        Console.WriteLine(newOcorrencia);
+
+        NovoDocumentosDTO? dto = new NovoDocumentosDTO
+        {
+            Documento = newDocumento,
+        };
+
+
+        var http = ClientFactory.CreateClient("Autenticado");
+        var response = await http.PostAsJsonAsync("api/Conferencias/novo-documento", dto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            FecharNovoDocumentoModal();
+            await CarregarDocumentos();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erro ao registrar ocorrência: {error}");
+            // Talvez exibir mensagem para o usuário
+        }
+
+    }
+
+    private async Task NovaOcorrencia()
+    {
+        Console.WriteLine(documentoId);
+        Console.WriteLine(newOcorrencia);
+
+        NovaOcorrenciasDTO? dto = new NovaOcorrenciasDTO
+        {
+            DocumentoId = documentoId,
+            Ocorrencia = newOcorrencia
+        };
+
+
+        var http = ClientFactory.CreateClient("Autenticado");
+        var response = await http.PostAsJsonAsync("api/Conferencias/nova-ocorrencia", dto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            FecharNovaOcorrenciaModal();
+            await CarregarRegistroOcorrencias();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erro ao registrar ocorrência: {error}");
+            // Talvez exibir mensagem para o usuário
+        }
+
+    }
+
+
+    private async Task RegistrarNovaOcorrencia()
+    {
+
+        NovoRegistroOcorrenciasDTO? dto = new NovoRegistroOcorrenciasDTO
+        {
+            Descricao = newRegistrOcorrencia
+        };
+
+
+        var http = ClientFactory.CreateClient("Autenticado");
+        var response = await http.PostAsJsonAsync("api/Conferencias/novo-registro-ocorrencia", dto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            FecharNovaOcorrenciaModal();
+            await CarregarRegistroOcorrencias();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erro ao registrar ocorrência: {error}");
+            // Talvez exibir mensagem para o usuário
+        }
+
+    }
+
+
+
 
     async Task CarregarDocumentos()
     {
@@ -403,6 +673,32 @@ else if (pesquisado)
         $"api/Conferencias/registro-ocorrencias/"
         ) ?? new();
 
+    }
+
+    public class TarefasResponse
+    {
+        public List<TarefaConferenciaDTO> recebidas { get; set; } = new();
+    }
+
+
+    private async Task CarregarTarefas()
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        try
+        {
+            var resultado = await client.GetFromJsonAsync<List<TarefaConferenciaDTO>>("api/Tarefa/conferencia-tarefas");
+            tarefasRecebida = resultado ?? new List<TarefaConferenciaDTO>();
+            Console.WriteLine("Tarefas carregadas: " + tarefasRecebida.Count);
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar tarefas: " + ex.Message);
+            tarefasRecebida = new();
+
+        }
     }
 
 

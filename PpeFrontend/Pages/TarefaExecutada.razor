@@ -10,7 +10,7 @@
 
 
 <!-- 📋 Tabela de tarefas enviadas -->
-<h4 class="mt-4">Enviadas</h4>
+<h4 class="mt-4"> Tarefas Executadas</h4>
 @if (tarefasEnviadasFiltradas.Any())
 {
     <table class="table table-bordered table-striped">
@@ -33,7 +33,11 @@
                             Editar
                         </button>
                     </td>
-                    <td>@tarefa.Id</td>
+                    <td>
+                        <button class="btn btn-sm me-1" @onclick="() => IrParaTarefa(tarefa.Id)">
+                            @tarefa.Id
+                        </button>
+                    </td>
                     <td>@tarefa.descricao</td>
                     <td>@usuarios.FirstOrDefault(u => u.Id ==
                                         tarefa.usuarioDestino)?.Nome </td>
@@ -59,6 +63,33 @@ else
     <button class="btn btn-outline-primary" @onclick="ProximaPagina"
         disabled="@((paginaAtual == TotalPaginasEnviadas))">Próxima</button>
 </div>
+
+<PageTitle>PPE - Tarefas Executadas</PageTitle>
+<h4>Sem Atividades</h4>
+@if (semAtividadesFiltradas.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 25%; white-space: nowrap;">Nome</th>
+                <th>Tarefa</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var sematividade in semAtividadesFiltradas)
+            {
+                <tr>
+                    <td>@sematividade.usuarioDestinoNome</td>
+                    <td>@sematividade.descricao</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Nenhuma tarefa recebida com esse filtro.</p>
+}
 
 @if (tarefaEditandoEnviadas != null)
 {
@@ -137,6 +168,7 @@ else
     private string filtroStatus = "";
     private string filtroDescricao = "";
     private int paginaAtual = 1;
+
     private int itensPorPagina = 5;
 
     private TarefaDTO? tarefaEditandoEnviadas;
@@ -147,6 +179,11 @@ else
 
     private List<string> statusDisponiveis = new() { "Nova", "Prioritario", "Duvidas", "EmAndamento", "Pendente",
 "Concluido" };
+
+    void IrParaTarefa(int id)
+    {
+        NavigationManager.NavigateTo($"/tarefa-concluida/{id}");
+    }
 
     private List<TarefaDTO> tarefasEnviadas = new();
     private List<UsuarioDTO> usuarios = new();
@@ -162,10 +199,24 @@ else
     .Take(itensPorPagina)
     .ToList();
 
+    private List<SemTarefaDTO> semAtividades = new();
+
+    private List<SemTarefaDTO> semAtividadesFiltradas => semAtividades
+    .Where(t =>
+    string.IsNullOrEmpty(filtroDescricao) ||
+    (!string.IsNullOrEmpty(t.descricao) &&
+    t.descricao.Contains(filtroDescricao, StringComparison.OrdinalIgnoreCase))
+    )
+    .ToList();
+
+
+
+
     protected override async Task OnInitializedAsync()
     {
         await CarregarUsuarios();
         await CarregarTarefas();
+        await SemTarefas();
     }
 
     private async Task CarregarUsuarios()
@@ -210,6 +261,25 @@ else
         {
             Console.WriteLine("Erro ao carregar tarefas: " + ex.Message);
             tarefasEnviadas = new();
+        }
+    }
+
+    private async Task SemTarefas()
+    {
+        var client = ClientFactory.CreateClient("Autenticado");
+
+        try
+        {
+            var response = await Http.GetFromJsonAsync<List<SemTarefaDTO>>("api/Tarefa/sem-tarefas");
+
+            semAtividades = response ?? new();
+            Console.WriteLine($"Total de usuários sem tarefas: {semAtividades.Count}");
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine("Erro ao carregar tarefas: " + ex.Message);
+            semAtividades = new();
         }
     }
 
@@ -334,9 +404,22 @@ else
 
     }
 
+    public class SemTarefaDTO
+    {
+        public string descricao { get; set; } = "";
+        public string usuarioDestinoNome { get; set; } = "";
+
+    }
+
     public class TarefasResponse
     {
         public List<TarefaDTO> enviadas { get; set; } = new();
+
+    }
+
+    public class SemTarefasResponse
+    {
+        public List<SemTarefaDTO> usuariosSemTarefas { get; set; } = new();
     }
 
     private TarefaDTO? tarefaVisualizandoObservacoes;

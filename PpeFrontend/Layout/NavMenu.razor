@@ -22,12 +22,8 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <AuthorizeView Roles="usuario, gestor">
-          <li class="nav-item">
-            <NavLink class="nav-link" href="http://10.27.10.117:3000/" target="_blank" rel="noopener noreferrer">
-              <i class="bi bi-easel2-fill me-2"></i> Dashboard
-            </NavLink>
-          </li>
+        <AuthorizeView Roles="usuario">
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
               <i class="bi bi-card-checklist me-2"></i> Conferências
@@ -79,6 +75,48 @@
               <i class="bi bi-house-door-fill me-2"></i> Tela Principal
             </NavLink>
           </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-card-checklist me-2"></i> Conferências
+            </a>
+            <ul class="dropdown-menu fade">
+              <li>
+                <NavLink class="dropdown-item" href="/conferencia">Fazer Conferência</NavLink>
+              </li>
+              <li>
+                <NavLink class="dropdown-item" href="/inconsistencias">Inconsistências</NavLink>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-controller  me-2"></i>Controles
+            </a>
+            <ul class="dropdown-menu fade">
+              <li>
+                <NavLink class="dropdown-item" href="/fardamentos-controles">Fardamentos</NavLink>
+              </li>
+              <li>
+                <NavLink class="dropdown-item" href="/outros-controles">Financeiros</NavLink>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <NavLink class="nav-link" href="/financeiros"><i class="bi bi-coin me-2"></i> Finanças</NavLink>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-list-task me-2"></i> Tarefas
+            </a>
+            <ul class="dropdown-menu fade">
+              <li>
+                <NavLink class="dropdown-item" href="/minhas-tarefas">Minhas Tarefas</NavLink>
+              </li>
+              <li>
+                <NavLink class="dropdown-item" href="/criar-tarefa">Criar Tarefa</NavLink>
+              </li>
+            </ul>
+          </li>
           <li class="nav-item">
             <NavLink class="nav-link" href="/tarefas-executadas">
               <i class="bi bi-house-door-fill me-2"></i> Tarefas executadas
@@ -103,16 +141,7 @@
             </NavLink>
           </li>
         </AuthorizeView>
-
-        <AuthorizeView Roles="gestor">
-          <li class="nav-item">
-            <NavLink class="nav-link" href="dashboard">
-              <i class="bi bi-bar-chart-fill me-2"></i> Dashboard
-            </NavLink>
-          </li>
-        </AuthorizeView>
       </ul>
-
       <ul class="navbar-nav ms-auto">
         <AuthorizeView>
           <Authorizing>

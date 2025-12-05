@@ -1,0 +1,151 @@
+/* /Layout/MainLayout.razor.rz.scp.css */
+.page[b-0p07ynpbyi] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main[b-0p07ynpbyi] {
+    flex: 1;
+}
+
+.sidebar[b-0p07ynpbyi] {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+}
+
+.top-row[b-0p07ynpbyi] {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+    .top-row[b-0p07ynpbyi]  a, .top-row[b-0p07ynpbyi]  .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+    }
+
+    .top-row[b-0p07ynpbyi]  a:hover, .top-row[b-0p07ynpbyi]  .btn-link:hover {
+        text-decoration: underline;
+    }
+
+    .top-row[b-0p07ynpbyi]  a:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+@media (max-width: 640.98px) {
+    .top-row[b-0p07ynpbyi] {
+        justify-content: space-between;
+    }
+
+    .top-row[b-0p07ynpbyi]  a, .top-row[b-0p07ynpbyi]  .btn-link {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page[b-0p07ynpbyi] {
+        flex-direction: row;
+    }
+
+    .sidebar[b-0p07ynpbyi] {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row[b-0p07ynpbyi] {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row.auth[b-0p07ynpbyi]  a:first-child {
+        flex: 1;
+        text-align: right;
+        width: 0;
+    }
+
+    .top-row[b-0p07ynpbyi], article[b-0p07ynpbyi] {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+/* /Layout/NavMenu.razor.rz.scp.css */
+/* Estilo base para links do menu */
+.navbar-nav .nav-link[b-q4fbcnuizv] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  font-size: 0.95rem;
+  text-decoration: none;
+  opacity: 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cor padrão dos links no tema escuro */
+.navbar-dark .navbar-nav .nav-link[b-q4fbcnuizv] {
+  color: white;
+}
+
+/* Link ativo com destaque */
+.navbar-dark .navbar-nav .nav-link.active[b-q4fbcnuizv] {
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* Hover elegante nos links */
+.navbar-dark .navbar-nav .nav-link:hover[b-q4fbcnuizv] {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Ícones do Bootstrap */
+.bi[b-q4fbcnuizv] {
+  font-size: 1rem;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+/* Cor personalizada para o fundo da navbar */
+.bg-dark[b-q4fbcnuizv] {
+  background-color: #3084e4 !important;
+}
+
+/* Estilo do dropdown */
+.navbar-nav .dropdown-menu[b-q4fbcnuizv] {
+  min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover nos itens do dropdown */
+.navbar-nav .dropdown-item:hover[b-q4fbcnuizv] {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Botão de logout com destaque */
+.dropdown-item.text-danger:hover[b-q4fbcnuizv] {
+  background-color: #ffe5e5;
+  color: #c00;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .navbar-nav .nav-link[b-q4fbcnuizv] {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-nav .dropdown-menu[b-q4fbcnuizv] {
+    font-size: 0.95rem;
+  }
+}

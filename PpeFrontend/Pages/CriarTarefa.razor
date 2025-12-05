@@ -7,7 +7,7 @@
 @using System.Net.Http
 @using System.Net.Http.Headers
 
-
+<PageTitle>PPE - Criar Tarefa</PageTitle>
 <h3>Criar Tarefa</h3>
 
 <EditForm Model="@novaTarefa" OnValidSubmit="EnviarTarefa">
@@ -16,7 +16,7 @@
 
     <div class="mb-3">
         <label>Descrição</label>
-        <InputText class="form-control" @bind-Value="novaTarefa.descricao" />
+        <InputTextArea class="form-control" @bind-Value="novaTarefa.descricao" />
     </div>
 
     <div class="mb-3">
